@@ -3,6 +3,8 @@ LDFLAGS=-libverbs
 
 SRCS=src/vmrc_symbols.c
 
+HEADERS_IN=src/include/vmrc_symbols.h.in
+
 HEADERS=src/include/vmrc_symbols.h
 
 OBJECTS=$(SRCS:.c=.o)
@@ -15,7 +17,10 @@ libverbs_mrc.so: $(OBJECTS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 $(OBJECTS): %.o: %.c $(HEADERS)
-	$(CC) -c $(CFLAGS) $< -o $@ 
+	$(CC) -c $(CFLAGS) $< -o $@
+
+src/include/vmrc_symbols.h: src/include/vmrc_symbols.h.in
+	$(CC) -E $< > $@ 
 
 TESTS=tests/check_vmrc_symbols.c
 
