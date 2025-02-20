@@ -23,6 +23,10 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   static struct vmrc_symbols_t* cache = NULL;
   if (cache != NULL) return cache;
 
+#ifdef VERBS_MRC_DEBUG
+  fprintf(stderr, "verbs-mrc: Loading ibv symbols from libibverbs.so\n");
+#endif
+
   static void* ibv_handle = NULL;
 
   cache = (struct vmrc_symbols_t*)calloc(1, sizeof(struct vmrc_symbols_t));

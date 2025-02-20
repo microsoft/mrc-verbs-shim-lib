@@ -2,6 +2,10 @@ CC=gcc
 CFLAGS=-fPIC
 LDFLAGS=
 
+ifdef DEBUG
+	CFLAGS += -DVERBS_MRC_DEBUG
+endif
+
 SRCS=src/vmrc_symbols.c \
 	src/vmrc_ibv_overwrites.c
 
