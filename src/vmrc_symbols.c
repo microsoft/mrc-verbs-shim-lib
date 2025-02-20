@@ -30,6 +30,10 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   static void* ibv_handle = NULL;
 
   cache = (struct vmrc_symbols_t*)calloc(1, sizeof(struct vmrc_symbols_t));
+  if (cache == NULL) {
+    fprintf(stderr, "verbs-mrc: Allocating (struct vmrc_symbols_t) failed\n");
+    goto teardown;
+  }
 
   ibv_handle = dlopen("libibverbs.so", RTLD_NOW);
   if (!ibv_handle) {
