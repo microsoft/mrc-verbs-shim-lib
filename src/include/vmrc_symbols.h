@@ -3,13 +3,13 @@
 
 #include <infiniband/verbs.h>
 
-#define DECLARE_FUNC(retdtype, funcname, ...) retdtype (*funcname)(__VA_ARGS__);
-
-/* This will be filled with libmrc.so symbols. Filling it with libibverbs.so symbols just for checking. */
+/* This will be filled with libmrc.so and libibverbs.so symbols. */
 struct vmrc_symbols_t {
-  DECLARE_FUNC(struct ibv_device**, ibv_get_device_list, int* num_devices);
+  struct ibv_device** (*ibv_get_device_list_internal)(int* num_devices);
+  const char* (*ibv_get_device_name_internal)(struct ibv_device* device);
 };
 
+/* Returns NULL if error. Otherwise returns a ptr to (struct vmrc_symbols_t*) with symbols loaded. */
 struct vmrc_symbols_t* vmrc_symbols_get();
 
-#endif
+#endif /* _VMRC_SYMBOLS_H_ */
