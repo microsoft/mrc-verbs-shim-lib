@@ -1,11 +1,11 @@
 /* Load all verbs symbols to a structure. */
 
 #define _GNU_SOURCE
+#include "include/vmrc_symbols.h"
+
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "include/vmrc_symbols.h"
 
 #define IBVERBS_VERSION "IBVERBS_1.1"
 #define LOAD_IBVERBS_SYM(handle, symbol, funcptr)                                                   \
