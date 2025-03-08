@@ -1,8 +1,8 @@
 #include "include/vmrc_ht.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Hash table size should be 2^bits. */
 #define VMRC_HT_BITS 7
@@ -31,9 +31,9 @@ static unsigned int knuth_hash_64(void *ptr) {
 /* Create a new hashtable. */
 struct vmrc_ht *vmrc_ht_get() {
   static struct vmrc_ht *hashtable = NULL;
-  if(hashtable != NULL) return hashtable;
+  if (hashtable != NULL) return hashtable;
 
-  hashtable = (struct vmrc_ht*) calloc(1, sizeof(struct vmrc_ht));
+  hashtable = (struct vmrc_ht *)calloc(1, sizeof(struct vmrc_ht));
   return hashtable;
 }
 
@@ -72,5 +72,3 @@ void vmrc_ht_free(struct vmrc_ht *hashtable) {
   }
   free(hashtable);
 }
-
-

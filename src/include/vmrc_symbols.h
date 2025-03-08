@@ -3,10 +3,12 @@
 
 #include <infiniband/verbs.h>
 
-/* This will be filled with libmrc.so and libibverbs.so symbols. */
+/* This will have the needed symbols from both libmrc.so and libibverbs.so. */
 struct vmrc_symbols_t {
   struct ibv_device** (*ibv_get_device_list_internal)(int* num_devices);
   const char* (*ibv_get_device_name_internal)(struct ibv_device* device);
+  struct ibv_context* (*ibv_open_device_internal)(struct ibv_device* device);
+  struct ibv_qp* (*ibv_create_qp_internal)(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr);
 };
 
 /* Returns NULL if error. Otherwise returns a ptr to (struct vmrc_symbols_t*) with symbols loaded. */

@@ -39,7 +39,7 @@ $(TESTS_INTERNAL_OBJ): %: %.c libverbs_mrc.so
 
 # TESTS are to check libverbs_mrc.so with verbs calls.
 
-TESTS=tests/check_ibv_device_overwrites.c \
+TESTS=tests/check_ibv_overwrites.c \
       tests/check_pd_context.c
 
 TESTS_OBJ=$(TESTS:.c=)
