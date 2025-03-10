@@ -3,7 +3,7 @@ CFLAGS=-fPIC
 LDFLAGS=
 
 ifdef DEBUG
-	CFLAGS += -DVERBS_MRC_DEBUG
+	CFLAGS += -DVMRC_DEBUG
 endif
 
 SRCS=src/vmrc_symbols.c \
@@ -11,7 +11,8 @@ SRCS=src/vmrc_symbols.c \
 	src/vmrc_ht.c
 
 HEADERS=src/include/vmrc_symbols.h \
-	src/include/vmrc_ht.h
+	src/include/vmrc_ht.h \
+	src/include/vmrc_log.h
 
 OBJECTS=$(SRCS:.c=.o)
 

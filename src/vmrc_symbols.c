@@ -45,6 +45,7 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_name", cache->ibv_get_device_name_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_open_device", cache->ibv_open_device_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_qp", cache->ibv_create_qp_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_cq", cache->ibv_create_cq_internal);
 
   return cache;
 

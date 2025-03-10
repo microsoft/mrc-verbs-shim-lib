@@ -9,6 +9,8 @@ struct vmrc_symbols_t {
   const char* (*ibv_get_device_name_internal)(struct ibv_device* device);
   struct ibv_context* (*ibv_open_device_internal)(struct ibv_device* device);
   struct ibv_qp* (*ibv_create_qp_internal)(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr);
+  struct ibv_cq* (*ibv_create_cq_internal)(struct ibv_context* context, int cqe, void* cq_context,
+                                           struct ibv_comp_channel* channel, int comp_vector);
 };
 
 /* Returns NULL if error. Otherwise returns a ptr to (struct vmrc_symbols_t*) with symbols loaded. */
