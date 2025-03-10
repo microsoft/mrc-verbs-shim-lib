@@ -55,8 +55,8 @@ struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* c
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
   struct ibv_context* context = vmrc_ht_search(hashtable, verbs_context); /* This will be an MRC context later. */
-  VMRC_CHECK_PRINT_EXIT_FMTINP(context, 1, "Could not find the matching MRC context for verbs context %p",
-                               verbs_context);
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(context, 1, "Could not find the matching MRC context for verbs context %p",
+                                verbs_context);
 
   struct vmrc_symbols_t* symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
@@ -77,8 +77,8 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   struct vmrc_ht* hashtable = vmrc_ht_get();
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get hashtable");
   struct ibv_context* context = vmrc_ht_search(hashtable, verbs_context); /* This will be an MRC context later. */
-  VMRC_CHECK_PRINT_EXIT_FMTINP(context, 1, "Could not find the matching MRC context for verbs context %p",
-                               verbs_context);
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(context, 1, "Could not find the matching MRC context for verbs context %p",
+                                verbs_context);
 
   /* We will use MRC context to create MRC QP (creating verbs qp just for testing). */
   return symbols->ibv_create_qp_internal(pd, qp_init_attr); /* This will be an MRC create qp call. */

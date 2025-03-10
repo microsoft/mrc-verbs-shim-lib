@@ -13,7 +13,7 @@
     }                                                 \
   } while (0);
 
-#define VMRC_CHECK_PRINT_EXIT_FMTINP(val, errcode, msg, ...)       \
+#define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...)      \
   do {                                                             \
     if (!val) {                                                    \
       fprintf(stderr, "verbs-mrc: error: " msg "\n", __VA_ARGS__); \
@@ -24,7 +24,7 @@
 #else /* #ifndef VMRC_NOCHECK */
 
 #define VMRC_CHECK_PRINT_EXIT(val, errcode, msg)
-#define VMRC_CHECK_PRINT_EXIT_FMTINP(val, errcode, msg, ...)
+#define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...)
 
 #endif
 
@@ -32,12 +32,12 @@
 #ifdef VMRC_DEBUG
 
 #define VMRC_DEBUG_PRINT(msg) fprintf(stderr, "verbs-mrc: print: " msg "\n");
-#define VMRC_DEBUG_PRINT_FMTINP(msg, ...) fprintf(stderr, "verbs-mrc: print: " msg "\n", __VA_ARGS__);
+#define VMRC_DEBUG_PRINT_VA_ARGS(msg, ...) fprintf(stderr, "verbs-mrc: print: " msg "\n", __VA_ARGS__);
 
 #else /* #ifdef VMRC_DEBUG */
 
 #define VMRC_DEBUG_PRINT(msg)
-#define VMRC_DEBUG_PRINT_FMTINP(msg, ...)
+#define VMRC_DEBUG_PRINT_VA_ARGS(msg, ...)
 
 #endif /* #ifdef VMRC_DEBUG */
 
