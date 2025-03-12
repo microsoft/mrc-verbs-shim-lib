@@ -1,24 +1,31 @@
 #ifndef _VMRC_LOG_H_
 #define _VMRC_LOG_H_
 
-/* Check if val is 0. If it is not 0, print error message and exit with an error code. */
-
 #ifndef VMRC_NOCHECK
 
-#define VMRC_CHECK_PRINT_EXIT(val, errcode, msg)      \
-  do {                                                \
-    if (!val) {                                       \
-      fprintf(stderr, "verbs-mrc: error: " msg "\n"); \
-      exit(errcode);                                  \
-    }                                                 \
+/* Check if val is 0. If it is not 0, print error message and exit with an error code. */
+#define VMRC_CHECK_PRINT_EXIT(val, errcode, msg) \
+  do {                                           \
+    if (!val) {                                  \
+      fprintf(stderr,                            \
+              "verbs-mrc: error: " msg           \
+              " (%s:%d)"                         \
+              "\n",                              \
+              __FILE__, __LINE__);               \
+      exit(errcode);                             \
+    }                                            \
   } while (0);
 
-#define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...)      \
-  do {                                                             \
-    if (!val) {                                                    \
-      fprintf(stderr, "verbs-mrc: error: " msg "\n", __VA_ARGS__); \
-      exit(errcode);                                               \
-    }                                                              \
+#define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...) \
+  do {                                                        \
+    if (!val) {                                               \
+      fprintf(stderr,                                         \
+              "verbs-mrc: error: " msg                        \
+              " (%s:%d)"                                      \
+              "\n",                                           \
+              __VA_ARGS__, __FILE__, __LINE__);               \
+      exit(errcode);                                          \
+    }                                                         \
   } while (0);
 
 #else /* #ifndef VMRC_NOCHECK */
@@ -26,7 +33,7 @@
 #define VMRC_CHECK_PRINT_EXIT(val, errcode, msg)
 #define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...)
 
-#endif
+#endif /* #ifndef VMRC_NOCHECK */
 
 /* Debug prints. */
 #ifdef VMRC_DEBUG

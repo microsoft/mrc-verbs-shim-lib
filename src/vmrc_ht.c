@@ -20,8 +20,8 @@ struct vmrc_ht {
   struct vmrc_ht_entry *table[VMRC_HT_SIZE];
 };
 
-/* Knuth's multiplicative hash. Given ptr, get the fractional part of (ptr * 2^64 * golden_ratio), where golden_ratio is
- * (sqrt(5)-1)/2. Then, get the highest VMRC_HT_BITS. */
+/* Knuth's multiplicative hash. Given ptr, get the fractional part of (ptr * 2^64 * (golden_ratio-1)), where
+ * (golden_ratio-1) is (sqrt(5)-1)/2. Then, get the highest VMRC_HT_BITS. */
 static unsigned int knuth_hash_64(void *ptr) {
   uint64_t address = (uint64_t)ptr;
   uint64_t constant = 11400714819323198485ULL; /* floor(2^64 * golden_ratio). */
