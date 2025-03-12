@@ -1,0 +1,8 @@
+# Object files
+src/*.o
+*.so
+
+# All test executables.
+tests/*
+!tests/*.c
+
