@@ -1,4 +1,5 @@
 #include "include/vmrc_ht.h"
+#include "include/vmrc_log.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -24,23 +25,25 @@ struct vmrc_ht {
  * (golden_ratio-1) is (sqrt(5)-1)/2. Then, get the highest VMRC_HT_BITS. */
 static unsigned int knuth_hash_64(void *ptr) {
   uint64_t address = (uint64_t)ptr;
-  uint64_t constant = 11400714819323198485ULL; /* floor(2^64 * golden_ratio). */
+  uint64_t constant = 11400714819323198485ULL; /* floor(2^64 * (golden_ratio-1)). */
   return (address * constant) >> (64 - VMRC_HT_BITS);
 }
 
 /* Create a new hashtable. */
 struct vmrc_ht *vmrc_ht_get() {
-  static struct vmrc_ht *hashtable = NULL;
-  if (hashtable != NULL) return hashtable;
+  static struct vmrc_ht *cache_ht = NULL;
+  if (cache_ht != NULL) return cache_ht;
 
-  hashtable = (struct vmrc_ht *)calloc(1, sizeof(struct vmrc_ht));
-  return hashtable;
+  cache_ht = (struct vmrc_ht *)calloc(1, sizeof(struct vmrc_ht));
+  VMRC_CHECK_PRINT_EXIT(cache_ht, 1, "Could not allocate hashtable");
+  return cache_ht;
 }
 
 /* Insert a key-value pair into the hashtable. */
 void vmrc_ht_insert(struct vmrc_ht *hashtable, void *key, void *value) {
   unsigned int index = knuth_hash_64(key);
   struct vmrc_ht_entry *new_entry = calloc(1, sizeof(struct vmrc_ht_entry));
+  VMRC_CHECK_PRINT_EXIT(new_entry, 1, "Could not allocate new entry for the hashtable");
   new_entry->key = key;
   new_entry->value = value;
   new_entry->next = hashtable->table[index];
