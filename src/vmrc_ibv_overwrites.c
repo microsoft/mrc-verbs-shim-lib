@@ -33,6 +33,7 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
 
   struct ibv_context* verbs_context = symbols->ibv_open_device_internal(device);
+  VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
   /* Create the MRC context (creating another verbs context just for testing). */
   struct ibv_context* context = symbols->ibv_open_device_internal(device);
