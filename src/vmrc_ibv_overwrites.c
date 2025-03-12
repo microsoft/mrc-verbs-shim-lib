@@ -69,24 +69,25 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
 struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                              struct ibv_comp_channel* channel, int comp_vector) {
   VMRC_DEBUG_PRINT("In ibv_create_cq");
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(channel == NULL && comp_vector == 0, 1, "channel %p != NULL or comp_vector %d != 0", channel, comp_vector);
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(channel == NULL && comp_vector == 0, 1, "channel %p != NULL or comp_vector %d != 0",
+                                channel, comp_vector);
 
   struct vmrc_ht* hashtable = vmrc_ht_get();
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
-  struct ibv_context* context = (struct ibv_context *) vmrc_ht_search(hashtable, verbs_context);
-  //struct mrc_context* context = (struct mrc_context *) vmrc_ht_search(hashtable, verbs_context);
+  struct ibv_context* context = (struct ibv_context*)vmrc_ht_search(hashtable, verbs_context);
+  // struct mrc_context* context = (struct mrc_context *) vmrc_ht_search(hashtable, verbs_context);
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
 
   struct vmrc_symbols_t* symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
 
-  struct ibv_cq *cq = symbols->ibv_create_cq_internal(verbs_context, cqe, cq_context, channel,
-                                         comp_vector);
-  // struct mrc_cq *cq = symbols->mrc_create_cq_internal(context, cqe, cq_context, (struct mrc_comp_channel *) channel, comp_vector);
+  struct ibv_cq* cq = symbols->ibv_create_cq_internal(verbs_context, cqe, cq_context, channel, comp_vector);
+  // struct mrc_cq *cq = symbols->mrc_create_cq_internal(context, cqe, cq_context, (struct mrc_comp_channel *) channel,
+  // comp_vector);
 
-  return (struct ibv_cq *) cq;
+  return (struct ibv_cq*)cq;
 }
 
 struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
