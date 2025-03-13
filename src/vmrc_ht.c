@@ -1,9 +1,10 @@
 #include "include/vmrc_ht.h"
-#include "include/vmrc_log.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "include/vmrc_log.h"
 
 /* Hash table size should be 2^bits. */
 #define VMRC_HT_BITS 7

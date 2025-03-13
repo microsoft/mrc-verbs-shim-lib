@@ -46,15 +46,32 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   struct ibv_context* verbs_context = symbols->ibv_open_device_internal(device);
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
-  /* Create the MRC context (creating another verbs context just for testing). */
-  struct ibv_context* context = symbols->ibv_open_device_internal(device);
-  // struct mrc_context_attr attr;
-  // attr.mrc_api_version_used      = MRC_API_CURRENT_VERSION;
-  // attr.ev_mode                   = MRC_EV_MODE_EXP_ARRAY;
-  // attr.allow_fmt                 = NULL;
-  // attr.mrc_ev_num_lsb_plane_bits = 0x7;
-  // struct mrc_context *context = symbols->mrc_create_context_internal(verbs_context, &attr);
-  // VMRC_CHECK_PRINT_EXIT(context, 1, "Could not create MRC context");
+  /* Query the device if it has sufficient MRC capability. */
+  /*
+
+  struct mrc_attr mrc_attr;
+  VMRC_CHECK_PRINT_EXIT(mrc_query_device(verbs_context, &mrc_attr), 1, "Error while calling mrc_query_device");
+
+  VMRC_CHECK_PRINT_EXIT(!(mrc_attr.opt_attr & MRC_OPT_CAP_EV_EXP_ARRAY), 1,
+                        "MRC implementation does not seem to have EV exp array capability");
+
+  */
+
+  /* Create the MRC context. */ 
+  /* 
+  
+  struct mrc_context_attr attr;
+  attr.mrc_api_version_used      = MRC_API_CURRENT_VERSION;
+  attr.ev_mode                   = MRC_EV_MODE_EXP_ARRAY;
+  attr.allow_fmt                 = NULL;
+  attr.mrc_ev_num_lsb_plane_bits = 0x7;
+  struct mrc_context *context = symbols->mrc_create_context_internal(verbs_context, &attr);
+  VMRC_CHECK_PRINT_EXIT(context, 1, "Could not create MRC context");
+
+  */
+
+  /* Filling with a dummy value. */
+  struct ibv_context* context = 0x1;
 
   /* Get the hashtable. */
   struct vmrc_ht* hashtable = vmrc_ht_get();
@@ -64,6 +81,11 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   vmrc_ht_insert(hashtable, verbs_context, context);
 
   return verbs_context;
+}
+
+/* Close the device. Here, before calling close with the verbs context, destroy the MRC context. */
+int ibv_close_device(struct ibv_context *verbs_context) {
+
 }
 
 struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
