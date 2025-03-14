@@ -38,6 +38,13 @@
 	- Return the pointer to MRC cq.
 <br/><br/>
 
+- [ ] `ibv_poll_cq`
+<br/><br/>
+
+- [ ] `ibv_destroy_cq`
+<br/><br/>
+
+
 - [ ] `ibv_create_qp`
 	- Get verbs_context from the `pd->context`.
 	- Get the corresponding mrc_context from the hashtable.
@@ -57,11 +64,12 @@
 - [ ] `ibv_modify_qp`
 <br/><br/>
 
+- [ ] `ibv_destroy_qp`
+<br/><br/>
+
 - [ ] `ibv_post_send`
 <br/><br/>
 
 - [ ] `ibv_post_recv`
 <br/><br/>
 
-- [ ] `ibv_poll_cq`
-<br/><br/>
