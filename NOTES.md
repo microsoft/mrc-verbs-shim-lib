@@ -45,9 +45,23 @@
 	- Create the MRC qp.
 	- Get the qp number of MRC qp.
 	- Calloc a `struct ibv_qp`. 
-	- Put the MRC qp number in ibv_qp's qp_num.
+	- Put the MRC qp number in ibv_qp's qp_num. The application will exchange this qp_num field via OOB (sockets)
 	- Put the pointer to MRC qp in ibv_qp's qp_context.
 	- Return the ibv_qp.
+<br/><br/>
 
+- [ ] `ibv_create_qp_ex`
+	- perftest uses ibv_create_qp_ex
+<br/><br/>
 
+- [ ] `ibv_modify_qp`
+<br/><br/>
 
+- [ ] `ibv_post_send`
+<br/><br/>
+
+- [ ] `ibv_post_recv`
+<br/><br/>
+
+- [ ] `ibv_poll_cq`
+<br/><br/>
