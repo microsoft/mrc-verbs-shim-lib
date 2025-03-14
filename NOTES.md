@@ -46,22 +46,34 @@
 
 
 - [ ] `ibv_create_qp`
-	- Get verbs_context from the `pd->context`.
-	- Get the corresponding mrc_context from the hashtable.
-	- Fill mrc_qp_init_attr using the input ibv_qp_init_attr.
+	- Get `verbs_context` from the `pd->context`.
+	- Get the corresponding `mrc_context` from the hashtable.
+	- Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
 	- Create the MRC qp.
 	- Get the qp number of MRC qp.
 	- Calloc a `struct ibv_qp`. 
-	- Put the MRC qp number in ibv_qp's qp_num. The application will exchange this qp_num field via OOB (sockets)
-	- Put the pointer to MRC qp in ibv_qp's qp_context.
-	- Return the ibv_qp.
+	- Put the MRC qp number in `ibv_qp->qp_num` field. The application will exchange this `qp_num` field via OOB (sockets)
+	- Put the passed `qp_context` in `ibv_qp->qp_context` in case the application uses this.
+	- Put the pointer to MRC qp in `ibv_qp->send_cq`. I don't think applications will directly use `send_cq`.
+	- Return the `ibv_qp`.
 <br/><br/>
 
 - [ ] `ibv_create_qp_ex`
-	- perftest uses ibv_create_qp_ex
+	- perftest uses `ibv_create_qp_ex`. So, this must be incorporated too.
+	- Since `ibv_create_qp_ex` takes `ibv_context` as input, we don't need to do anything special to get the verbs context.
+	- Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
+	- Create the MRC qp. 	
+	- Get the qp number of MRC qp.
+	- Calloc a `struct ibv_qp`. 
+	- Put the MRC qp number in `ibv_qp->qp_num` field. The application will exchange this `qp_num` field via OOB (sockets)
+	- Put the passed `qp_context` in `ibv_qp->qp_context` in case the application uses this.
+	- Put the pointer to MRC qp in `ibv_qp->send_cq`.
+	- Return the `ibv_qp`.
+
 <br/><br/>
 
 - [ ] `ibv_modify_qp`
+	- Here, get the MRC Qp pointer from the pointer `ibv_qp->send_cq`.
 <br/><br/>
 
 - [ ] `ibv_destroy_qp`
