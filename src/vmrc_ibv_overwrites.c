@@ -50,9 +50,9 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   /*
 
   struct mrc_attr mrc_attr;
-  VMRC_CHECK_PRINT_EXIT(mrc_query_device(verbs_context, &mrc_attr), 1, "Error while calling mrc_query_device");
+  VMRC_CHECK_PRINT_EXIT(!mrc_query_device(verbs_context, &mrc_attr), 1, "Error while calling mrc_query_device");
 
-  VMRC_CHECK_PRINT_EXIT(!(mrc_attr.opt_attr & MRC_OPT_CAP_EV_EXP_ARRAY), 1,
+  VMRC_CHECK_PRINT_EXIT(mrc_attr.opt_attr & MRC_OPT_CAP_EV_EXP_ARRAY, 1,
                         "MRC implementation does not seem to have EV exp array capability");
 
   */
@@ -86,12 +86,31 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
 /* Close the device. Here, before calling close with the verbs context, destroy the MRC context. */
 int ibv_close_device(struct ibv_context *verbs_context) {
 
+  VMRC_DEBUG_PRINT("In ibv_close_device");
+
+  struct vmrc_ht* hashtable = vmrc_ht_get();
+  VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
+
+  /* Retrieving dummy context. */
+  struct ibv_context* context = (struct ibv_context*)vmrc_ht_search(hashtable, verbs_context);
+  /* Retrieving MRC context and destroying it. */
+  /*
+  
+  struct mrc_context* context = (struct mrc_context *) vmrc_ht_search(hashtable, verbs_context); 
+  VMRC_CHECK_PRINT_EXIT(!mrc_destroy_context(context), 1, "Error in mrc_destroy_context"); 
+  
+  */
+
+  struct vmrc_symbols_t* symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
+
+  return symbols->ibv_close_device_internal(verbs_context);
 }
 
 struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                              struct ibv_comp_channel* channel, int comp_vector) {
   VMRC_DEBUG_PRINT("In ibv_create_cq");
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(channel == NULL && comp_vector == 0, 1, "channel %p != NULL or comp_vector %d != 0",
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(channel == NULL && comp_vector == 0, 1, "channel %p must be NULL and comp_vector %d must be 0",
                                 channel, comp_vector);
 
   struct vmrc_ht* hashtable = vmrc_ht_get();
