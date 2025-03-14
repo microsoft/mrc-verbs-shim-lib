@@ -44,7 +44,7 @@
 
 <br/><br/>
 
-- [] `ibv_create_qp`
+- [ ] `ibv_create_qp`
 	- Get verbs_context from the `pd->context`.
 	- Get the corresponding mrc_context from the hashtable.
 	- Create the MRC qp.
