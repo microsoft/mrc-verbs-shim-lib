@@ -83,7 +83,7 @@ source IP and destination IP is used to obtain the actual EV list. Put the EV ar
     mrc_qp_attr_mask |= MRC_QP_EV_ARRAY;
     ```
     - call `mrc_modify_qp(mrc_qp, &ibv_qp_attr, ibv_qp_attr_mask, &mrc_qp_attr, mrc_qp_attr_mask)`
-- If the new state is RTS,
+- If the new state is RTS, just pass the usual ibv_qp attributes to `mrc_modify_qp`.
 
 `ibv_destroy_qp`
 - Get the MRC QP pointer from `ibv_qp->send_cq` and destroy via `mrc_destroy_qp`.
