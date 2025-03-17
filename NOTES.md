@@ -1,9 +1,8 @@
 # Writeup for verbs-mrc
 
 Framework to load MRC symbols, verbs symbols and test them (Done)
-
-	- Use `dlvsym/dlsym` to load the symbols from the shared library into a structure of function pointers
-	- The structure is obtained via `vmrc_symbols_get()` function. The function pointers have the suffix `_internal`
+- Use `dlvsym/dlsym` to load the symbols from the shared library into a structure of function pointers
+- The structure is obtained via `vmrc_symbols_get()` function. The function pointers have the suffix `_internal`
 
 **Framework to overwrite verbs calls and test the loaded symbols (Done)**
 
