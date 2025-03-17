@@ -48,7 +48,8 @@
 
 **`ibv_create_qp`**
 
-	- Get `verbs_context` from the `pd->context`.
+	- NCCL uses `ibv_create_qp` to create the QPs.
+	- This takes pd as input. Get `verbs_context` from the `pd->context`.
 	- Get the corresponding `mrc_context` from the hashtable.
 	- Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
 	- Create the MRC qp.
@@ -74,7 +75,11 @@
 
 **`ibv_modify_qp`**
 
-	- Here, get the MRC Qp pointer from the pointer `ibv_qp->send_cq`.
+	- Here, get the MRC QP pointer from `ibv_qp->send_cq`.
+	- If `ibv_qp_attr.state == IBV_QPS_INIT`, then `memset(&mrc_qp_attr, 0, sizeof(mrc_qp_attr));` and `mrc_qp_attr_mask = 0;` 
+	and call `mrc_modify_qp(mrc_qp, &ibv_qp_attr, ibv_qp_attr_mask, &mrc_qp_attr, mrc_qp_attr_mask)`.
+	- If the new state is RTR, then create a MRC EV array. The list of EVs can be obtained from the `system.json` 
+	file. The source IP and destination IP is used to obtain the actual EV list. Put the EV array in the dummy ibv qp's recv_cq.
 
 **`ibv_destroy_qp`**
 
