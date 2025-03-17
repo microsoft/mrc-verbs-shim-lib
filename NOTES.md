@@ -33,18 +33,21 @@
 	- Destroy the mrc context
 	- Then, close the device with the verbs context
 
-**`ibv_create_cq (Done)`**
+**`ibv_create_cq` (Done)**
 
 	- We will create use the inputs to create MRC cq.
 	- Return the pointer to MRC cq as the verbs cq pointer.
 
-- [ ] `ibv_poll_cq`
+**`ibv_poll_cq`**
+
 	- Simply map this to `mrc_poll_cq (cq, num_entries, wc)`.
 
-- [ ] `ibv_destroy_cq`
+**`ibv_destroy_cq`**
+
 	- Simply map this to `mrc_destroy_cq`.
 
-- [ ] `ibv_create_qp`
+**`ibv_create_qp`**
+
 	- Get `verbs_context` from the `pd->context`.
 	- Get the corresponding `mrc_context` from the hashtable.
 	- Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
@@ -56,7 +59,8 @@
 	- Put the pointer to MRC qp in `ibv_qp->send_cq`. I don't think applications will directly use `send_cq`.
 	- Return the `ibv_qp`.
 
-- [ ] `ibv_create_qp_ex`
+**`ibv_create_qp_ex`**
+
 	- perftest uses `ibv_create_qp_ex`. So, this must be incorporated too.
 	- Since `ibv_create_qp_ex` takes `ibv_context` as input, we don't need to do anything special to get the verbs context.
 	- Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
@@ -68,14 +72,12 @@
 	- Put the pointer to MRC qp in `ibv_qp->send_cq`.
 	- Return the `ibv_qp`.
 
-- [ ] `ibv_modify_qp`
+**`ibv_modify_qp`**
+
 	- Here, get the MRC Qp pointer from the pointer `ibv_qp->send_cq`.
 
-- [ ] `ibv_destroy_qp`
+**`ibv_destroy_qp`**
 
-- [ ] `ibv_post_send`
+**`ibv_post_send`**
 
-- [ ] `ibv_post_recv`
-
-<br/><br/>
-
+**`ibv_post_recv`**
