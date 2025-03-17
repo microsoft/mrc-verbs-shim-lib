@@ -33,7 +33,7 @@
 	- Destroy the mrc context
 	- Then, close the device with the verbs context
 
-**`ibv_create_cq(Done)`**
+**`ibv_create_cq (Done)`**
 
 	- We will create use the inputs to create MRC cq.
 	- Return the pointer to MRC cq as the verbs cq pointer.
