@@ -65,9 +65,24 @@ Framework for the hashtable to pair up a `verbs_context` with a `mrc_context` (D
 
 `ibv_modify_qp`
 - Here, get the MRC QP pointer from `ibv_qp->send_cq`.
-- If `ibv_qp_attr.state == IBV_QPS_INIT`, then `memset(&mrc_qp_attr, 0, sizeof(mrc_qp_attr));` and `mrc_qp_attr_mask = 0;` 
-and call `mrc_modify_qp(mrc_qp, &ibv_qp_attr, ibv_qp_attr_mask, &mrc_qp_attr, mrc_qp_attr_mask)`.
-- If the new state is RTR, then create a MRC EV array. The list of EVs can be obtained from the `system.json` file. The source IP and destination IP is used to obtain the actual EV list. Put the EV array in the dummy ibv qp's recv_cq.
+- If the new state is `IBV_QPS_INIT`, 
+    - then `memset(&mrc_qp_attr, 0, sizeof(mrc_qp_attr));` and `mrc_qp_attr_mask = 0;` 
+    - call `mrc_modify_qp(mrc_qp, &ibv_qp_attr, ibv_qp_attr_mask, &mrc_qp_attr, mrc_qp_attr_mask)`
+- If the new state is RTR, then create a MRC EV array. The list of EVs can be obtained from the `system.json` file. The 
+source IP and destination IP is used to obtain the actual EV list. Put the EV array in the dummy ibv qp's recv_cq. 
+    - Accordingly, create the `mrc_qp_attr` with `mrc_qp_attr.ev_array = mrc_ev_array` and other entries similar in the example ev_explicit.md
+    ```
+    memset(&mrc_qp_attr, 0, sizeof(mrc_qp_attr));
+    mrc_qp_attr.num_ev               = num_ev;
+    mrc_qp_attr.min_active_ev_per_qp = ev_min_active; /* no change */
+    mrc_qp_attr.ev_array             = mrc_ev_array;
+    /* set MRC QP attributes mask... */
+    mrc_qp_attr_mask  = 0;
+    mrc_qp_attr_mask |= MRC_QP_MAX_EV_COUNT; 
+    mrc_qp_attr_mask |= MRC_QP_EV_MIN_ACTIVE;
+    mrc_qp_attr_mask |= MRC_QP_EV_ARRAY;
+    ```
+    - call `mrc_modify_qp(mrc_qp, &ibv_qp_attr, ibv_qp_attr_mask, &mrc_qp_attr, mrc_qp_attr_mask)`
 
 `ibv_destroy_qp`
 
