@@ -67,9 +67,9 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
 
   VMRC_DEBUG_PRINT_VA_ARGS("Loading mrc symbols from %s", mrc_lib_path);
 
-  mrc_handle = dlopen(mrc_lib_path, RTLD_NOW);
+  mrc_handle = dlopen(mrc_lib_path, RTLD_LAZY);
   if (!mrc_handle) {
-    fprintf(stderr, "Failed to open libmrc.so \n");
+    fprintf(stderr, "Failed to open %s\n", mrc_lib_path);
     goto teardown;
   }
 
