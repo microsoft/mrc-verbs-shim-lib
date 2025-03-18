@@ -7,7 +7,6 @@ $(error MRC_H_PATH is not defined) # NO indentation is crucial here.
 endif
 
 CFLAGS += -I$(MRC_H_PATH)
-LDFLAGS += -L$(MRC_H_PATH) -lnv_mrc
 
 ifeq ($(DEBUG),1)
 CFLAGS += -DVMRC_DEBUG
