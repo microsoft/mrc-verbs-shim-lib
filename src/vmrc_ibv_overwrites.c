@@ -7,6 +7,7 @@
 #include "include/vmrc_ht.h"
 #include "include/vmrc_log.h"
 #include "include/vmrc_symbols.h"
+#include "mrc.h"
 
 /*
  * Test overwrite of ibv_get_device_list.
@@ -33,11 +34,12 @@ const char* ibv_get_device_name(struct ibv_device* device) {
 }
 
 /*
- * Overwrites ibv_open_device. Queries if the device supports the required MRC EV array capability. Errors out if the
- * required capability is not present. Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context,
- * mrc_context) key-value pair in the hash table. Returns the created ibv_context.
+ * Overwrites ibv_open_device. Queries if the device supports MRC. Errors out if the required capability is not present. Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash table. Returns the created ibv_context. The returned verbs context can be used to alloc pd and register memory.
  */
 struct ibv_context* ibv_open_device(struct ibv_device* device) {
+
+  struct mrc_attr mrc_attr;
+
   VMRC_DEBUG_PRINT("In ibv_open_device");
 
   struct vmrc_symbols_t* symbols = vmrc_symbols_get();
@@ -47,40 +49,14 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
   /* Query the device if it has sufficient MRC capability. */
-  /*
-
-  struct mrc_attr mrc_attr;
   VMRC_CHECK_PRINT_EXIT(mrc_query_device(verbs_context, &mrc_attr) == 0, 1, "Error while calling mrc_query_device");
 
-  VMRC_CHECK_PRINT_EXIT(mrc_attr.opt_attr & MRC_OPT_CAP_EV_EXP_ARRAY, 1,
-                        "MRC implementation does not seem to have EV exp array capability");
-
-  */
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
+                        "MRC not supported. mrc_attr.mrc_version = %d", mrc_attr.mrc_version);
 
   /* Create the MRC context. */
-  /*
-
-  struct mrc_context_attr attr;
-  attr.mrc_api_version_used      = MRC_API_CURRENT_VERSION;
-  attr.ev_mode                   = MRC_EV_MODE_EXP_ARRAY;
-  attr.allow_fmt                 = NULL;
-  attr.mrc_ev_num_lsb_plane_bits = 0x7;
-  struct mrc_context *context = symbols->mrc_create_context_internal(verbs_context, &attr);
-  VMRC_CHECK_PRINT_EXIT(context, 1, "Could not create MRC context");
-
-  */
-
-  /*
-   * Below is what I found from perftest. mrc_attr is what I used to query the device.
-
   struct mrc_context *context = mrc_create_context(verbs_context, mrc_attr.mrc_version);
   VMRC_CHECK_PRINT_EXIT(context, 1, "Could not create MRC context");
-
-
-  */
-
-  /* Filling with a dummy value. */
-  struct ibv_context* context = 0x1;
 
   /* Get the hashtable. */
   struct vmrc_ht* hashtable = vmrc_ht_get();
