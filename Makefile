@@ -1,9 +1,15 @@
 CC=gcc
 CFLAGS=-fPIC
-LDFLAGS=
+DEBUG?=
 
-ifdef DEBUG
-	CFLAGS += -DVMRC_DEBUG
+ifndef MRC_H_PATH
+$(error MRC_H_PATH is not defined) # NO indentation is crucial here.
+endif
+
+CFLAGS += -I$(MRC_H_PATH)
+
+ifeq ($(DEBUG),1)
+CFLAGS += -DVMRC_DEBUG
 endif
 
 SRCS=src/vmrc_symbols.c \
