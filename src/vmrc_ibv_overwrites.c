@@ -34,10 +34,11 @@ const char* ibv_get_device_name(struct ibv_device* device) {
 }
 
 /*
- * Overwrites ibv_open_device. Queries if the device supports MRC. Errors out if the required capability is not present. Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash table. Returns the created ibv_context. The returned verbs context can be used to alloc pd and register memory.
+ * Overwrites ibv_open_device. Queries if the device supports MRC. Errors out if the required capability is not present.
+ * Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash
+ * table. Returns the created ibv_context. The returned verbs context can be used to alloc pd and register memory.
  */
 struct ibv_context* ibv_open_device(struct ibv_device* device) {
-
   struct mrc_attr attr;
 
   VMRC_DEBUG_PRINT("In ibv_open_device");
@@ -49,12 +50,13 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
   /* Query the device if it has sufficient MRC capability. */
-  VMRC_CHECK_PRINT_EXIT(symbols->mrc_query_device_internal(verbs_context, &attr) == 0, 1, "Error while calling mrc_query_device");
+  VMRC_CHECK_PRINT_EXIT(symbols->mrc_query_device_internal(verbs_context, &attr) == 0, 1,
+                        "Error while calling mrc_query_device");
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
-                        "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
+                                "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
   /* Create the MRC context. */
-  struct mrc_context *context = symbols->mrc_create_context_internal(verbs_context, attr.mrc_version);
+  struct mrc_context* context = symbols->mrc_create_context_internal(verbs_context, attr.mrc_version);
   VMRC_CHECK_PRINT_EXIT(context, 1, "Could not create MRC context");
 
   /* Get the hashtable. */
@@ -78,7 +80,7 @@ int ibv_close_device(struct ibv_context* verbs_context) {
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
   /* Retrieving MRC context and destroying it. */
-  struct mrc_context* context = (struct mrc_context *) vmrc_ht_search(hashtable, verbs_context);
+  struct mrc_context* context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
   VMRC_CHECK_PRINT_EXIT(symbols->mrc_destroy_context_internal(context) == 0, 1, "Error in mrc_destroy_context");
 
   /* Destroy the verbs context. */
@@ -89,23 +91,19 @@ int ibv_close_device(struct ibv_context* verbs_context) {
 struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                              struct ibv_comp_channel* channel, int comp_vector) {
   VMRC_DEBUG_PRINT("In ibv_create_cq");
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(channel == NULL && comp_vector == 0, 1,
-                                "channel %p must be NULL and comp_vector %d must be 0", channel, comp_vector);
 
   struct vmrc_ht* hashtable = vmrc_ht_get();
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
-  struct ibv_context* context = (struct ibv_context*)vmrc_ht_search(hashtable, verbs_context);
-  // struct mrc_context* context = (struct mrc_context *) vmrc_ht_search(hashtable, verbs_context);
+  struct mrc_context* context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
 
   struct vmrc_symbols_t* symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
 
-  struct ibv_cq* cq = symbols->ibv_create_cq_internal(verbs_context, cqe, cq_context, channel, comp_vector);
-  // struct mrc_cq *cq = symbols->mrc_create_cq_internal(context, cqe, cq_context, (struct mrc_comp_channel *) channel,
-  // comp_vector);
+  struct mrc_cq* cq =
+      symbols->mrc_create_cq_internal(context, cqe, cq_context, (struct mrc_comp_channel*)channel, comp_vector);
 
   return (struct ibv_cq*)cq;
 }
@@ -116,7 +114,7 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   struct vmrc_symbols_t* symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
 
-  /* Get corresponding MRC context. */
+  /* Get verbs context and get the corresponding MRC context through hashtable. */
   struct ibv_context* verbs_context = pd->context;
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "pd->context turned out to be NULL");
   struct vmrc_ht* hashtable = vmrc_ht_get();
@@ -124,6 +122,8 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   struct ibv_context* context = vmrc_ht_search(hashtable, verbs_context); /* This will be an MRC context later. */
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
+
+  /* Fill MRC QP attributes. */
 
   /* We will use MRC context to create MRC QP (creating verbs qp just for testing). */
   return symbols->ibv_create_qp_internal(pd, qp_init_attr); /* This will be an MRC create qp call. */
