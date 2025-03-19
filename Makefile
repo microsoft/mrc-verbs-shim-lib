@@ -27,7 +27,7 @@ TARGETS=libibverbs.so
 all: $(TARGETS)
 
 libibverbs.so: $(OBJECTS)
-	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS)
+	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
 $(OBJECTS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -47,7 +47,8 @@ $(TESTS_INTERNAL_OBJ): %: %.c libverbs_mrc.so
 # TESTS are to check libverbs_mrc.so with verbs calls.
 
 TESTS=tests/check_ibv_overwrites.c \
-      tests/check_pd_context.c
+      tests/check_pd_context.c \
+      tests/check_ibv_overwrites_dlopen.c
 
 TESTS_OBJ=$(TESTS:.c=)
 

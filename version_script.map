@@ -1,0 +1,11 @@
+IBVERBS_1.1 {
+    global:
+        ibv_open_device;
+};
+
+
+VMRC_INTERNAL {
+    local:
+        *;
+};
+

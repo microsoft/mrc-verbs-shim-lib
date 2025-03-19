@@ -58,6 +58,7 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
     goto teardown;
   }
 
+  /* For this to work with NCCL, I have to put an interface for all the verbs calls that NCCL uses. */
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_list", cache->ibv_get_device_list_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_name", cache->ibv_get_device_name_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_open_device", cache->ibv_open_device_internal);

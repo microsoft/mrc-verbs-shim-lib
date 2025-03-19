@@ -14,7 +14,8 @@
 /*
  * Test overwrite of ibv_get_device_list.
  */
-struct ibv_device** ibv_get_device_list(int* num_devices) {
+__asm__(".symver vmrc_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1"); /* Here @@ means the default version. */
+struct ibv_device** vmrc_ibv_get_device_list(int* num_devices) {
   struct vmrc_symbols_t* symbols;
 
   VMRC_DEBUG_PRINT("In ibv_get_device_list");
@@ -28,7 +29,9 @@ struct ibv_device** ibv_get_device_list(int* num_devices) {
 /*
  * Test overwrite of ibv_get_device_name.
  */
-const char* ibv_get_device_name(struct ibv_device* device) {
+
+__asm__(".symver vmrc_ibv_get_device_name, ibv_get_device_name@@IBVERBS_1.1");
+const char* vmrc_ibv_get_device_name(struct ibv_device* device) {
   struct vmrc_symbols_t* symbols;
 
   VMRC_DEBUG_PRINT("In ibv_get_device_name");
@@ -44,7 +47,8 @@ const char* ibv_get_device_name(struct ibv_device* device) {
  * Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash
  * table. Returns the created ibv_context. The returned verbs context can be used to alloc pd and register memory.
  */
-struct ibv_context* ibv_open_device(struct ibv_device* device) {
+__asm__(".symver vmrc_ibv_open_device, ibv_open_device@@IBVERBS_1.1");
+struct ibv_context* vmrc_ibv_open_device(struct ibv_device* device) {
   struct mrc_attr attr;
   struct vmrc_symbols_t* symbols;
   struct ibv_context* verbs_context;
