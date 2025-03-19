@@ -3,6 +3,8 @@
 #include <infiniband/verbs.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 #include "include/vmrc_ht.h"
 #include "include/vmrc_log.h"
@@ -60,7 +62,7 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
 
   /* Query the device if it has sufficient MRC capability. */
   mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d", mrc_errno);
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s", mrc_errno, strerror(mrc_errno));
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
                                 "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
@@ -130,11 +132,46 @@ struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* c
   return (struct ibv_cq*)cq;
 }
 
-/* Create a dummy (struct ibv_qp) with qp_num field equal to the MRC qp num. Return pointer to this. Store the mrc qp in
- * send_cq. The ev_array will be later stored in recv_cq. */
+/* Overwrite of ibv_post_send. */
+int vmrc_ibv_overwrite_post_send(struct ibv_qp* qp, struct ibv_send_wr* wr, struct ibv_send_wr** bad_wr) {
+  struct vmrc_symbols_t* symbols;
+  struct mrc_qp* vmrc_qp;
+  int mrc_errno;
+
+  VMRC_DEBUG_PRINT("In vmrc_ibv_overwrite_post_send");
+
+  /* Get MRC QP from QP's send_cq. */
+  vmrc_qp = (struct mrc_qp*)qp->send_cq;
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
+  mrc_errno = symbols->mrc_post_send_internal(vmrc_qp, wr, bad_wr);
+
+  return mrc_errno;
+}
+
+/* Overwrite of ibv_post_recv. */
+int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr *wr, struct ibv_recv_wr **bad_wr) {
+
+  struct vmrc_symbols_t* symbols;
+  struct mrc_qp* vmrc_qp;
+  int mrc_errno;
+
+  VMRC_DEBUG_PRINT("In vmrc_ibv_overwrite_post_recv");
+
+  /* Get MRC QP from QP's send_cq. */
+  vmrc_qp = (struct mrc_qp*)qp->send_cq;
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
+  mrc_errno = symbols->mrc_post_recv_internal(vmrc_qp, wr, bad_wr);
+
+  return mrc_errno;
+
+}
+
+/* Create a dummy struct ibv_qp. Fill the required quantities in it and send it back. */
 struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
   struct vmrc_symbols_t* symbols;
-  struct ibv_context* verbs_context;
+  struct ibv_context *verbs_context, *dummy_verbs_context;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   struct mrc_qp* vmrc_qp;
@@ -174,7 +211,7 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
 
   /* Allocate a dummy ibv qp. */
   verbs_qp = calloc(1, sizeof(struct ibv_qp));
-  VMRC_CHECK_PRINT_EXIT(verbs_qp, 1, "Unable to allocate verbs QP");
+  VMRC_CHECK_PRINT_EXIT(verbs_qp, 1, "Unable to allocate the dummy verbs QP");
 
   /* Put MRC qp_num in verbs_qp->qp_num. */
   mrc_errno = symbols->mrc_get_qpn_internal(vmrc_qp, &verbs_qp->qp_num);
@@ -185,6 +222,17 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
 
   /* Put MRC QP in send_cq. */
   verbs_qp->send_cq = (struct ibv_cq*)vmrc_qp;
+
+  /* Allocate dummy verbs context. */
+  dummy_verbs_context = calloc(1, sizeof(struct ibv_context));
+  VMRC_CHECK_PRINT_EXIT(dummy_verbs_context, 1, "Unable to allocate the dummy verbs context");
+
+  /* Put overwrites of post_send, post_recv and poll_cq. */
+  dummy_verbs_context->ops.post_send = &vmrc_ibv_overwrite_post_send;
+  dummy_verbs_context->ops.post_recv = &vmrc_ibv_overwrite_post_recv;
+
+  /* Put the dummy verbs context in the returned QP's qp->context. */
+  verbs_qp->context = dummy_verbs_context;
 
   return verbs_qp;
 }

@@ -123,3 +123,5 @@ mrc_qp_attr_mask |= MRC_QP_EV_ARRAY;
 ## Note on NCCL
 
 In NCCL, the ibverbs symbols are loaded from libibverbs.so (or libibverbs.so.1) at run time. So, just doing the above will not work. We have to name our library libibverbs.so and check in every version of NCCL if this is the file that they loaded in its `src/misc/ibvsymbols.cc`. This still needs to be tested.
+
+Another thing is that NCCL loads a lot of verbs symbols from libibverbs.so. We must support all these symbols. Otherwise, there will be a symbol not found error.

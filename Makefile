@@ -27,7 +27,7 @@ TARGETS=libibverbs.so
 all: $(TARGETS)
 
 libibverbs.so: $(OBJECTS)
-	$(CC) -shared -o $@ $^ $(LDFLAGS)
+	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS)
 
 $(OBJECTS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $< -o $@
