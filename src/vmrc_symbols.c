@@ -47,7 +47,12 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
 
   VMRC_DEBUG_PRINT("Loading ibv symbols from libibverbs.so");
 
-  ibv_handle = dlopen("libibverbs.so", RTLD_NOW);
+  const char* verbs_lib_path = getenv("VMRC_LIBIBVERBS_SO");
+  VMRC_CHECK_PRINT_EXIT(verbs_lib_path, 1, "VMRC_LIBIBVERBS_SO env var is not set.");
+
+  VMRC_DEBUG_PRINT_VA_ARGS("Loading verbs symbols from %s", verbs_lib_path);
+
+  ibv_handle = dlopen(verbs_lib_path, RTLD_NOW);
   if (!ibv_handle) {
     fprintf(stderr, "Failed to open libibverbs.so\n");
     goto teardown;

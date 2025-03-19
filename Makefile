@@ -22,11 +22,11 @@ HEADERS=src/include/vmrc_symbols.h \
 
 OBJECTS=$(SRCS:.c=.o)
 
-TARGETS=libverbs_mrc.so
+TARGETS=libibverbs.so
 
 all: $(TARGETS)
 
-libverbs_mrc.so: $(OBJECTS)
+libibverbs.so: $(OBJECTS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 $(OBJECTS): %.o: %.c $(HEADERS)
@@ -71,7 +71,7 @@ lint:
 
 .PHONY: clean
 clean:
-	rm -f libverbs_mrc.so
+	rm -f $(TARGETS)
 	rm -f $(OBJECTS)
 	rm -f $(TESTS_INTERNAL_OBJ)
 	rm -f $(TESTS_OBJ)

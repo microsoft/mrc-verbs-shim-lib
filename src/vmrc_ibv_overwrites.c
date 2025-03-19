@@ -48,7 +48,7 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   struct ibv_context* verbs_context;
   struct mrc_context* vmrc_context;
   struct vmrc_ht* hashtable;
-  int errno;
+  int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_open_device");
 
@@ -59,8 +59,8 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
   /* Query the device if it has sufficient MRC capability. */
-  errno = symbols->mrc_query_device_internal(verbs_context, &attr);
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(errno == 0, 1, "Error while calling mrc_query_device. Returned %d", errno);
+  mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d", mrc_errno);
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
                                 "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
@@ -83,7 +83,7 @@ int ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_symbols_t* symbols;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
-  int errno;
+  int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_close_device");
 
@@ -97,8 +97,8 @@ int ibv_close_device(struct ibv_context* verbs_context) {
   vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(vmrc_context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
-  errno = symbols->mrc_destroy_context_internal(vmrc_context);
-  VMRC_CHECK_PRINT_EXIT(errno == 0, 1, "Error in mrc_destroy_context");
+  mrc_errno = symbols->mrc_destroy_context_internal(vmrc_context);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "Error in mrc_destroy_context");
 
   /* Destroy the verbs context. */
   return symbols->ibv_close_device_internal(verbs_context);
@@ -130,7 +130,6 @@ struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* c
   return (struct ibv_cq*)cq;
 }
 
-/******** IN PROGRESS *********/
 /* Create a dummy (struct ibv_qp) with qp_num field equal to the MRC qp num. Return pointer to this. Store the mrc qp in
  * send_cq. The ev_array will be later stored in recv_cq. */
 struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
@@ -138,9 +137,15 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   struct ibv_context* verbs_context;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
+  struct mrc_qp* vmrc_qp;
+  struct ibv_qp* verbs_qp;
   struct mrc_qp_init_attr mrc_qp_attr;
+  int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_create_qp");
+
+  /* Check if the QP type is RC. Other QP types will cause an error. */
+  VMRC_CHECK_PRINT_EXIT(qp_init_attr->qp_type == IBV_QPT_RC, 1, "Only RC QP types are supported");
 
   symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
@@ -156,21 +161,30 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
 
   /* Fill MRC QP attributes. */
   memset(&mrc_qp_attr, 0, sizeof(struct mrc_qp_init_attr));
-
   mrc_qp_attr.qp_context = qp_init_attr->qp_context;
   mrc_qp_attr.send_cq = (struct mrc_cq*)qp_init_attr->send_cq;
   mrc_qp_attr.recv_cq = (struct mrc_cq*)qp_init_attr->recv_cq;
   mrc_qp_attr.pd = pd;
+  mrc_qp_attr.cap = qp_init_attr->cap; /* Copy the entire struct. */
+  mrc_qp_attr.sq_sig_all = qp_init_attr->sq_sig_all;
 
-  //    mrc_qp_attr.qp_context = NULL;
-  //    mrc_qp_attr.pd = ctx->pd;
-  //    mrc_qp_attr.send_cq = ctx->mrc_send_cq;
-  //    mrc_qp_attr.recv_cq = (user_param->verb == WRITE_IMM) ? ctx->mrc_recv_cq : ctx->mrc_send_cq;
-  //    mrc_qp_attr.cap.max_send_wr  = user_param->tx_depth;
-  //    mrc_qp_attr.cap.max_send_sge = 1;
-  //    mrc_qp_attr.cap.max_recv_wr  = user_param->rx_depth;
-  //    mrc_qp_attr.cap.max_recv_sge = MAX_RECV_SGE
+  /* Create MRC QP. */
+  vmrc_qp = symbols->mrc_create_qp_internal(vmrc_context, &mrc_qp_attr);
+  VMRC_CHECK_PRINT_EXIT(vmrc_qp, 1, "Error while calling mrc_create_qp");
 
-  /* We will use MRC context to create MRC QP (creating verbs qp just for testing). */
-  return symbols->ibv_create_qp_internal(pd, qp_init_attr); /* This will be an MRC create qp call. */
+  /* Allocate a dummy ibv qp. */
+  verbs_qp = calloc(1, sizeof(struct ibv_qp));
+  VMRC_CHECK_PRINT_EXIT(verbs_qp, 1, "Unable to allocate verbs QP");
+
+  /* Put MRC qp_num in verbs_qp->qp_num. */
+  mrc_errno = symbols->mrc_get_qpn_internal(vmrc_qp, &verbs_qp->qp_num);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "Unable to call mrc_get_qpn");
+
+  /* Put qp_context. */
+  verbs_qp->qp_context = qp_init_attr->qp_context;
+
+  /* Put MRC QP in send_cq. */
+  verbs_qp->send_cq = (struct ibv_cq*)vmrc_qp;
+
+  return verbs_qp;
 }
