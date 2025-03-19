@@ -31,8 +31,10 @@
 - Then, close the device with the verbs context
 
 **`ibv_create_cq` (Done)**
-- We will create use the inputs to create MRC cq.
-- Return the pointer to MRC cq as the verbs cq pointer.
+- We will use the inputs to create MRC cq.
+- Create a dummy `ibv_cq`. Put the MRC cq in `ibv_cq->channel`. Put the passed `cq_context` in `ibv_cq->cq_context`.
+- Create a dummy `ibv_context` and put it in `cq->context`. Put the pointer to the overwrite of `ibv_poll_cq` in `cq->context->ops.poll_cq`
+- Return the pointer to the dummy verbs cq.
 
 **`ibv_poll_cq`**
 - Simply map this to `mrc_poll_cq (cq, num_entries, wc)`.
@@ -44,6 +46,7 @@
 - NCCL uses `ibv_create_qp` to create the QPs.
 - This takes pd as input. Get `verbs_context` from the `pd->context`.
 - Get the corresponding `mrc_context` from the hashtable.
+- Get the MRC send and recv CQs  from `ibv_cq->channel`.
 - Fill `mrc_qp_init_attr` using the input `ibv_qp_init_attr`.
 - Create the MRC qp.
 - Get the qp number of MRC qp.

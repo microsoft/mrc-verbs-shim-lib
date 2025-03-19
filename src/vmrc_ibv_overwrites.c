@@ -1,9 +1,9 @@
 /* Overwrite ibverbs calls. */
 
+#include <errno.h>
 #include <infiniband/verbs.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include "include/vmrc_ht.h"
@@ -62,7 +62,8 @@ struct ibv_context* ibv_open_device(struct ibv_device* device) {
 
   /* Query the device if it has sufficient MRC capability. */
   mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s", mrc_errno, strerror(mrc_errno));
+  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s", mrc_errno,
+                                strerror(mrc_errno));
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
                                 "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
@@ -106,15 +107,34 @@ int ibv_close_device(struct ibv_context* verbs_context) {
   return symbols->ibv_close_device_internal(verbs_context);
 }
 
-/* Create MRC CQ from the input parameters and return the pointer to MRC CQ. */
+/* Overwrite for poll_cq. */
+int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc* wc) {
+  struct vmrc_symbols_t* symbols;
+  struct mrc_cq* vmrc_cq;
+  int ret;
+
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
+
+  vmrc_cq = (struct mrc_cq*)cq->channel;
+  ret = symbols->mrc_poll_cq_internal(vmrc_cq, num_entries, wc);
+
+  return ret;
+}
+
+/* Overwrite for ibv_create_cq. */
 struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                              struct ibv_comp_channel* channel, int comp_vector) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   struct vmrc_symbols_t* symbols;
-  struct mrc_cq* cq;
+  struct ibv_cq* verbs_cq;
+  struct mrc_cq* vmrc_cq;
+  struct ibv_context *dummy_verbs_context;
 
   VMRC_DEBUG_PRINT("In ibv_create_cq");
+
+  VMRC_CHECK_PRINT_EXIT(channel == NULL, 1, "Non-NULL completion channel not yet supported");
 
   hashtable = vmrc_ht_get();
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
@@ -126,10 +146,30 @@ struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* c
   symbols = vmrc_symbols_get();
   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
 
-  cq = symbols->mrc_create_cq_internal(vmrc_context, cqe, cq_context, (struct mrc_comp_channel*)channel, comp_vector);
-  VMRC_CHECK_PRINT_EXIT(cq, 1, "Error in mrc_create_cq");
+  vmrc_cq = symbols->mrc_create_cq_internal(vmrc_context, cqe, cq_context, NULL, comp_vector);
+  VMRC_CHECK_PRINT_EXIT(vmrc_cq, 1, "Error in mrc_create_cq");
 
-  return (struct ibv_cq*)cq;
+  /* Allocate dummy verbs cq. */
+  verbs_cq = calloc(1, sizeof(struct ibv_cq));
+  VMRC_CHECK_PRINT_EXIT(verbs_cq, 1, "Unable to allocate the dummy verbs CQ");
+
+  /* Store vmrc_cq in verbs_cq->channel. */
+  verbs_cq->channel = (struct ibv_comp_channel*)vmrc_cq;
+
+  /* Put the input cq_context in verbs_cq->cq_context. */
+  verbs_cq->cq_context = cq_context;
+
+  /* Allocate dummy verbs context. */
+  dummy_verbs_context = calloc(1, sizeof(struct ibv_context));
+  VMRC_CHECK_PRINT_EXIT(dummy_verbs_context, 1, "Unable to allocate the dummy verbs context");
+
+  /* Replace poll_cq in the dummy verbs context. */
+  dummy_verbs_context->ops.poll_cq = &vmrc_ibv_overwrite_poll_cq;
+
+  /* Put the dummy verbs context in verbs_cq's context. */
+  verbs_cq->context = dummy_verbs_context;
+
+  return verbs_cq;
 }
 
 /* Overwrite of ibv_post_send. */
@@ -150,8 +190,7 @@ int vmrc_ibv_overwrite_post_send(struct ibv_qp* qp, struct ibv_send_wr* wr, stru
 }
 
 /* Overwrite of ibv_post_recv. */
-int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr *wr, struct ibv_recv_wr **bad_wr) {
-
+int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr* wr, struct ibv_recv_wr** bad_wr) {
   struct vmrc_symbols_t* symbols;
   struct mrc_qp* vmrc_qp;
   int mrc_errno;
@@ -165,7 +204,6 @@ int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr *wr, stru
   mrc_errno = symbols->mrc_post_recv_internal(vmrc_qp, wr, bad_wr);
 
   return mrc_errno;
-
 }
 
 /* Create a dummy struct ibv_qp. Fill the required quantities in it and send it back. */
@@ -199,8 +237,8 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   /* Fill MRC QP attributes. */
   memset(&mrc_qp_attr, 0, sizeof(struct mrc_qp_init_attr));
   mrc_qp_attr.qp_context = qp_init_attr->qp_context;
-  mrc_qp_attr.send_cq = (struct mrc_cq*)qp_init_attr->send_cq;
-  mrc_qp_attr.recv_cq = (struct mrc_cq*)qp_init_attr->recv_cq;
+  mrc_qp_attr.send_cq = (struct mrc_cq*)qp_init_attr->send_cq->channel;
+  mrc_qp_attr.recv_cq = (struct mrc_cq*)qp_init_attr->recv_cq->channel;
   mrc_qp_attr.pd = pd;
   mrc_qp_attr.cap = qp_init_attr->cap; /* Copy the entire struct. */
   mrc_qp_attr.sq_sig_all = qp_init_attr->sq_sig_all;
@@ -227,7 +265,7 @@ struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init
   dummy_verbs_context = calloc(1, sizeof(struct ibv_context));
   VMRC_CHECK_PRINT_EXIT(dummy_verbs_context, 1, "Unable to allocate the dummy verbs context");
 
-  /* Put overwrites of post_send, post_recv and poll_cq. */
+  /* Put overwrites of post_send, post_recv. */
   dummy_verbs_context->ops.post_send = &vmrc_ibv_overwrite_post_send;
   dummy_verbs_context->ops.post_recv = &vmrc_ibv_overwrite_post_recv;
 
