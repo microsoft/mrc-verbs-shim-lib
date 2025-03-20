@@ -22,6 +22,8 @@ HEADERS=src/include/vmrc_symbols.h \
 
 OBJECTS=$(SRCS:.c=.o)
 
+OBJECTS_INTERNAL=$(SRCS:.c=_internal.o)
+
 TARGETS=libibverbs.so libibverbs_internal.so
 
 all: $(TARGETS)
@@ -29,10 +31,13 @@ all: $(TARGETS)
 libibverbs.so: $(OBJECTS)
 	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
-libibverbs_internal.so: $(OBJECTS)
-	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script_internal.map
+libibverbs_internal.so: $(OBJECTS_INTERNAL)
+	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
 $(OBJECTS): %.o: %.c $(HEADERS)
+	$(CC) -c $(CFLAGS) -fvisibility=hidden $< -o $@
+
+$(OBJECTS_INTERNAL): %_internal.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 # TESTS_INTERNAL are to check verbs_mrc library and other auxiliary tests.
@@ -76,7 +81,7 @@ lint:
 .PHONY: clean
 clean:
 	rm -f $(TARGETS)
-	rm -f $(OBJECTS)
+	rm -f $(OBJECTS) $(OBJECTS_INTERNAL)
 	rm -f $(TESTS_INTERNAL_OBJ)
 	rm -f $(TESTS_OBJ)
 

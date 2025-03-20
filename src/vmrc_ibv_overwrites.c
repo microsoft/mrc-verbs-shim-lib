@@ -11,11 +11,13 @@
 #include "include/vmrc_symbols.h"
 #include "mrc.h"
 
+#define VMRC_DEF_VIS __attribute__ ((visibility ("default")))
+
 /*
  * Test overwrite of ibv_get_device_list.
  */
-__asm__(".symver vmrc_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1"); /* Here @@ means the default version. */
-struct ibv_device** vmrc_ibv_get_device_list(int* num_devices) {
+__asm__ (".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
+VMRC_DEF_VIS struct ibv_device** ovwrt_ibv_get_device_list(int* num_devices) {
   struct vmrc_symbols_t* symbols;
 
   VMRC_DEBUG_PRINT("In ibv_get_device_list");
@@ -30,8 +32,8 @@ struct ibv_device** vmrc_ibv_get_device_list(int* num_devices) {
  * Test overwrite of ibv_get_device_name.
  */
 
-__asm__(".symver vmrc_ibv_get_device_name, ibv_get_device_name@@IBVERBS_1.1");
-const char* vmrc_ibv_get_device_name(struct ibv_device* device) {
+__asm__(".symver ovwrt_ibv_get_device_name, ibv_get_device_name@@IBVERBS_1.1");
+VMRC_DEF_VIS const char* ovwrt_ibv_get_device_name(struct ibv_device* device) {
   struct vmrc_symbols_t* symbols;
 
   VMRC_DEBUG_PRINT("In ibv_get_device_name");
@@ -47,8 +49,8 @@ const char* vmrc_ibv_get_device_name(struct ibv_device* device) {
  * Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash
  * table. Returns the created ibv_context. The returned verbs context can be used to alloc pd and register memory.
  */
-__asm__(".symver vmrc_ibv_open_device, ibv_open_device@@IBVERBS_1.1");
-struct ibv_context* vmrc_ibv_open_device(struct ibv_device* device) {
+__asm__(".symver ovwrt_ibv_open_device, ibv_open_device@@IBVERBS_1.1");
+VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device) {
   struct mrc_attr attr;
   struct vmrc_symbols_t* symbols;
   struct ibv_context* verbs_context;
@@ -86,8 +88,8 @@ struct ibv_context* vmrc_ibv_open_device(struct ibv_device* device) {
 }
 
 /* Close the device. Here, before calling close with the verbs context, destroy the MRC context. */
-__asm__(".symver vmrc_ibv_close_device, ibv_close_device@@IBVERBS_1.1");
-int vmrc_ibv_close_device(struct ibv_context* verbs_context) {
+__asm__(".symver ovwrt_ibv_close_device, ibv_close_device@@IBVERBS_1.1");
+VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_symbols_t* symbols;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
@@ -112,7 +114,7 @@ int vmrc_ibv_close_device(struct ibv_context* verbs_context) {
   return symbols->ibv_close_device_internal(verbs_context);
 }
 
-/* Overwrite for poll_cq. */
+/* Overwrite for poll_cq. This is passed as a function pointer. */
 int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc* wc) {
   struct vmrc_symbols_t* symbols;
   struct mrc_cq* vmrc_cq;
@@ -128,8 +130,8 @@ int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc
 }
 
 /* Overwrite for ibv_create_cq. */
-__asm__(".symver vmrc_ibv_create_cq, ibv_create_cq@@IBVERBS_1.1");
-struct ibv_cq* vmrc_ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
+__asm__(".symver ovwrt_ibv_create_cq, ibv_create_cq@@IBVERBS_1.1");
+VMRC_DEF_VIS struct ibv_cq* ovwrt_ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                                   struct ibv_comp_channel* channel, int comp_vector) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
@@ -213,8 +215,8 @@ int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr* wr, stru
 }
 
 /* Create a dummy struct ibv_qp. Fill the required quantities in it and send it back. */
-__asm__(".symver vmrc_ibv_create_qp, ibv_create_qp@@IBVERBS_1.1");
-struct ibv_qp* vmrc_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
+__asm__(".symver ovwrt_ibv_create_qp, ibv_create_qp@@IBVERBS_1.1");
+VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
   struct vmrc_symbols_t* symbols;
   struct ibv_context *verbs_context, *dummy_verbs_context;
   struct vmrc_ht* hashtable;
