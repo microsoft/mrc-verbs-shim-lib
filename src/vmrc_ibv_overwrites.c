@@ -86,7 +86,8 @@ struct ibv_context* vmrc_ibv_open_device(struct ibv_device* device) {
 }
 
 /* Close the device. Here, before calling close with the verbs context, destroy the MRC context. */
-int ibv_close_device(struct ibv_context* verbs_context) {
+__asm__(".symver vmrc_ibv_close_device, ibv_close_device@@IBVERBS_1.1");
+int vmrc_ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_symbols_t* symbols;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
@@ -127,7 +128,8 @@ int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc
 }
 
 /* Overwrite for ibv_create_cq. */
-struct ibv_cq* ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
+__asm__(".symver vmrc_ibv_create_cq, ibv_create_cq@@IBVERBS_1.1");
+struct ibv_cq* vmrc_ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
                              struct ibv_comp_channel* channel, int comp_vector) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
@@ -211,7 +213,8 @@ int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr* wr, stru
 }
 
 /* Create a dummy struct ibv_qp. Fill the required quantities in it and send it back. */
-struct ibv_qp* ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
+__asm__(".symver vmrc_ibv_create_qp, ibv_create_qp@@IBVERBS_1.1");
+struct ibv_qp* vmrc_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp_init_attr* qp_init_attr) {
   struct vmrc_symbols_t* symbols;
   struct ibv_context *verbs_context, *dummy_verbs_context;
   struct vmrc_ht* hashtable;
