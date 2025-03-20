@@ -1,15 +1,15 @@
-CC=gcc
-CFLAGS=-fPIC
-DEBUG?=
+CC = gcc
+CFLAGS += -fPIC
+DEBUG ?= 0
+MKFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+MRC_H_PATH ?= $(MKFILE_DIR)/mrc-header-lib # Pass MRC_H_PATH
 
-ifndef MRC_H_PATH
-$(error MRC_H_PATH is not defined) # NO indentation is crucial here.
-endif
+$(info MRC_H_PATH set to $(MRC_H_PATH))
 
-CFLAGS += -I$(MRC_H_PATH)
+CFLAGS := -I$(MRC_H_PATH) $(CFLAGS)
 
-ifeq ($(DEBUG),1)
-CFLAGS += -DVMRC_DEBUG
+ifneq ($(DEBUG),0)
+CFLAGS += -g -DVMRC_DEBUG # No indentation is crucial here.
 endif
 
 SRCS=src/vmrc_symbols.c \
@@ -22,12 +22,15 @@ HEADERS=src/include/vmrc_symbols.h \
 
 OBJECTS=$(SRCS:.c=.o)
 
-TARGETS=libibverbs.so
+TARGETS=libibverbs.so libibverbs_internal.so
 
 all: $(TARGETS)
 
 libibverbs.so: $(OBJECTS)
 	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
+
+libibverbs_internal.so: $(OBJECTS)
+	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script_internal.map
 
 $(OBJECTS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -41,8 +44,8 @@ TESTS_INTERNAL_OBJ=$(TESTS_INTERNAL:.c=)
 
 tests_internal: $(TESTS_INTERNAL_OBJ)
 
-$(TESTS_INTERNAL_OBJ): %: %.c libverbs_mrc.so
-	$(CC) $(CFLAGS) $< -o $@ -L$(PWD) -lverbs_mrc $(LDFLAGS)
+$(TESTS_INTERNAL_OBJ): %: %.c libibverbs_internal.so
+	$(CC) $(CFLAGS) $< -o $@ -L$(MKFILE_DIR) -libverbs_internal $(LDFLAGS)
 
 # TESTS are to check libverbs_mrc.so with verbs calls.
 
@@ -54,7 +57,7 @@ TESTS_OBJ=$(TESTS:.c=)
 
 tests: $(TESTS_OBJ)
 
-$(TESTS_OBJ): %: %.c libverbs_mrc.so
+$(TESTS_OBJ): %: %.c libibverbs.so
 	$(CC) $(CFLAGS) $< -o $@ -libverbs $(LDFLAGS)
 
 # Formatting (taken from Yang's addition to MRPScrub).

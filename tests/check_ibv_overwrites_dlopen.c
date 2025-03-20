@@ -1,10 +1,11 @@
 
 #define _GNU_SOURCE
 
-#include <infiniband/verbs.h>
 #include <dlfcn.h>
+#include <infiniband/verbs.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "../src/include/vmrc_symbols.h"
 
 #define IBVERBS_VERSION "IBVERBS_1.1"
@@ -14,7 +15,7 @@
     void* tmp = dlvsym(handle, symbol, IBVERBS_VERSION);                                            \
     if (tmp == NULL) {                                                                              \
       fprintf(stderr, "dlvsym failed on %s - %s version %s\n", symbol, dlerror(), IBVERBS_VERSION); \
-      exit(1);                                                                                \
+      exit(1);                                                                                      \
     }                                                                                               \
     *cast = tmp;                                                                                    \
   } while (0)
@@ -31,7 +32,7 @@ int main() {
 
   struct vmrc_symbols_t symbols;
 
-  fprintf(stderr," --- \n In check_ibv_overwrites_dlopen \n ---\n");
+  fprintf(stderr, " --- \n In check_ibv_overwrites_dlopen \n ---\n");
 
   /* Load symbols. */
   ibv_handle = dlopen("libibverbs.so", RTLD_NOW);
@@ -43,7 +44,6 @@ int main() {
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_list", symbols.ibv_get_device_list_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_name", symbols.ibv_get_device_name_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_open_device", symbols.ibv_open_device_internal);
-
 
   dev_list = symbols.ibv_get_device_list_internal(&num_devices);
   const char** dev_names = (const char**)calloc(num_devices, sizeof(const char*));

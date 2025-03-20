@@ -130,13 +130,13 @@ int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc
 /* Overwrite for ibv_create_cq. */
 __asm__(".symver vmrc_ibv_create_cq, ibv_create_cq@@IBVERBS_1.1");
 struct ibv_cq* vmrc_ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
-                             struct ibv_comp_channel* channel, int comp_vector) {
+                                  struct ibv_comp_channel* channel, int comp_vector) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   struct vmrc_symbols_t* symbols;
   struct ibv_cq* verbs_cq;
   struct mrc_cq* vmrc_cq;
-  struct ibv_context *dummy_verbs_context;
+  struct ibv_context* dummy_verbs_context;
 
   VMRC_DEBUG_PRINT("In ibv_create_cq");
 
