@@ -11,12 +11,12 @@
 #include "include/vmrc_symbols.h"
 #include "mrc.h"
 
-#define VMRC_DEF_VIS __attribute__ ((visibility ("default")))
+#define VMRC_DEF_VIS __attribute__((visibility("default")))
 
 /*
  * Test overwrite of ibv_get_device_list.
  */
-__asm__ (".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
+__asm__(".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
 VMRC_DEF_VIS struct ibv_device** ovwrt_ibv_get_device_list(int* num_devices) {
   struct vmrc_symbols_t* symbols;
 
@@ -132,7 +132,7 @@ int vmrc_ibv_overwrite_poll_cq(struct ibv_cq* cq, int num_entries, struct ibv_wc
 /* Overwrite for ibv_create_cq. */
 __asm__(".symver ovwrt_ibv_create_cq, ibv_create_cq@@IBVERBS_1.1");
 VMRC_DEF_VIS struct ibv_cq* ovwrt_ibv_create_cq(struct ibv_context* verbs_context, int cqe, void* cq_context,
-                                  struct ibv_comp_channel* channel, int comp_vector) {
+                                                struct ibv_comp_channel* channel, int comp_vector) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   struct vmrc_symbols_t* symbols;
@@ -178,6 +178,14 @@ VMRC_DEF_VIS struct ibv_cq* ovwrt_ibv_create_cq(struct ibv_context* verbs_contex
   verbs_cq->context = dummy_verbs_context;
 
   return verbs_cq;
+}
+
+/* Overwrite for ibv_destroy_cq. */
+__asm__(".symver ovwrt_ibv_destroy_cq, ibv_destroy_cq@@IBVERBS_1.1");
+VMRC_DEF_VIS int ovwrt_ibv_destroy_cq(struct ibv_cq* verbs_cq) {
+  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_cq. Not handling cq destroy now. There will be a memory leak");
+
+  return 0;
 }
 
 /* Overwrite of ibv_post_send. */
@@ -282,4 +290,12 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   verbs_qp->context = dummy_verbs_context;
 
   return verbs_qp;
+}
+
+/* Overwrite for ibv_destroy_qp. */
+__asm__(".symver ovwrt_ibv_destroy_qp, ibv_destroy_qp@@IBVERBS_1.1");
+VMRC_DEF_VIS int ovwrt_ibv_destroy_qp(struct ibv_qp* verbs_qp) {
+  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_qp. Not handling qp destroy now. There will be a memory leak");
+
+  return 0;
 }
