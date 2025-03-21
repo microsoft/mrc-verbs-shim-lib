@@ -65,6 +65,7 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_close_device", cache->ibv_close_device_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_qp", cache->ibv_create_qp_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_cq", cache->ibv_create_cq_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_gid", cache->ibv_query_gid_internal);
 
   /* Load MRC symbols. */
 

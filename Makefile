@@ -15,12 +15,14 @@ endif
 SRCS=src/vmrc_symbols.c \
 	src/vmrc_ibv_overwrites.c \
 	src/vmrc_ht.c \
-	src/cJSON.c
+	src/cJSON.c \
+	src/vmrc_json.c
 
 HEADERS=src/include/vmrc_symbols.h \
 	src/include/vmrc_ht.h \
 	src/include/vmrc_log.h \
-	src/include/cJSON.h
+	src/include/cJSON.h \
+	src/include/vmrc_json.h
 
 OBJECTS=$(SRCS:.c=.o)
 

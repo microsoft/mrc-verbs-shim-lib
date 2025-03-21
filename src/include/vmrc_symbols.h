@@ -17,6 +17,7 @@ struct vmrc_symbols_t {
   struct ibv_qp *(*ibv_create_qp_internal)(struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr);
   struct ibv_cq *(*ibv_create_cq_internal)(struct ibv_context *context, int cqe, void *cq_context,
                                            struct ibv_comp_channel *channel, int comp_vector);
+  int (*ibv_query_gid_internal)(struct ibv_context *context, uint8_t port_num, int index, union ibv_gid *gid);
 
   /*
    * MRC symbols.
