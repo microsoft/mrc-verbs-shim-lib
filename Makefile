@@ -14,11 +14,13 @@ endif
 
 SRCS=src/vmrc_symbols.c \
 	src/vmrc_ibv_overwrites.c \
-	src/vmrc_ht.c
+	src/vmrc_ht.c \
+	src/cJSON.c
 
 HEADERS=src/include/vmrc_symbols.h \
 	src/include/vmrc_ht.h \
-	src/include/vmrc_log.h
+	src/include/vmrc_log.h \
+	src/include/cJSON.h
 
 OBJECTS=$(SRCS:.c=.o)
 
@@ -43,7 +45,8 @@ $(OBJECTS_INTERNAL): %_internal.o: %.c $(HEADERS)
 # TESTS_INTERNAL are to check verbs_mrc library and other auxiliary tests.
 
 TESTS_INTERNAL=tests/check_vmrc_symbols.c \
-	       tests/check_vmrc_ht.c
+	       tests/check_vmrc_ht.c \
+	       tests/check_cjson.c 
 
 TESTS_INTERNAL_OBJ=$(TESTS_INTERNAL:.c=)
 
@@ -56,7 +59,8 @@ $(TESTS_INTERNAL_OBJ): %: %.c libibverbs_internal.so
 
 TESTS=tests/check_ibv_overwrites.c \
       tests/check_pd_context.c \
-      tests/check_ibv_overwrites_dlopen.c
+      tests/check_ibv_overwrites_dlopen.c \
+      tests/check_extract_ipv6_from_gid.c
 
 TESTS_OBJ=$(TESTS:.c=)
 
