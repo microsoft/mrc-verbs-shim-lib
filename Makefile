@@ -48,7 +48,8 @@ $(OBJECTS_INTERNAL): %_internal.o: %.c $(HEADERS)
 
 TESTS_INTERNAL=tests/check_vmrc_symbols.c \
 	       tests/check_vmrc_ht.c \
-	       tests/check_cjson.c 
+	       tests/check_cjson.c \
+	       tests/check_parse_system_json.c
 
 TESTS_INTERNAL_OBJ=$(TESTS_INTERNAL:.c=)
 
