@@ -380,6 +380,10 @@ int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int 
     mrc_attr_mask = MRC_QP_ATTR_EV_ARRAY;
     mrc_attr.ev_array = vmrc_ev_array;
 
+    /* Free EV state and value arrays. */
+    free(ev_state_array);
+    free(ev_val_array);
+
   } else if (vattr->qp_state == IBV_QPS_RTS) {
     mrc_attr_mask = 0U; /* No MRC related attr mask. */
   }
