@@ -185,7 +185,25 @@ VMRC_DEF_VIS struct ibv_cq* ovwrt_ibv_create_cq(struct ibv_context* verbs_contex
 /* Overwrite for ibv_destroy_cq. */
 __asm__(".symver ovwrt_ibv_destroy_cq, ibv_destroy_cq@@IBVERBS_1.1");
 VMRC_DEF_VIS int ovwrt_ibv_destroy_cq(struct ibv_cq* verbs_cq) {
+  struct vmrc_symbols_t* symbols;
+  struct mrc_cq* vmrc_cq;
+  int mrc_errno;
+
   VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_cq. Not handling cq destroy now. There will be a memory leak");
+
+  /* Free the dummy verbs context. */
+  free(verbs_cq->context);
+
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
+
+  /* Free MRC cq. */
+  vmrc_cq = (void*)verbs_cq->channel;
+  mrc_errno = symbols->mrc_destroy_cq_internal(vmrc_cq);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "mrc_destroy_cq failed");
+
+  /* Free the dummy verbs cq. */
+  free(verbs_cq);
 
   return 0;
 }
