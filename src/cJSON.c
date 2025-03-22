@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -323,6 +324,9 @@ loop_end:
   } else {
     item->valueint = (int)number;
   }
+
+  /* Added by Sreev. */
+  item->valueuint32_t = (uint32_t) strtoul((const char *)number_c_string, NULL, 0);
 
   item->type = cJSON_Number;
 

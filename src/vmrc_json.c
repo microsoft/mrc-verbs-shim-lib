@@ -71,10 +71,8 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
   *num_evs = cJSON_GetArraySize(ps_list);
   ev_list = (uint32_t *)calloc(*num_evs, sizeof(uint32_t));
   VMRC_CHECK_PRINT_EXIT(ev_list != NULL, 1, "ev_list allocation failed");
-  VMRC_DEBUG_PRINT(
-      "Need to fix cJSON library to return uint32_t instead of int. There will be error if ev_list[i] > INT_MAX.");
   for (int i = 0; i < *num_evs; ++i) {
-    ev_list[i] = (uint32_t)cJSON_GetArrayItem(ps_list, i)->valueint;
+    ev_list[i] = cJSON_GetArrayItem(ps_list, i)->valueuint32_t;
   }
 
   return ev_list;

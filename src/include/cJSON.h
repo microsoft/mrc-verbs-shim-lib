@@ -114,6 +114,8 @@ typedef struct cJSON {
   char *valuestring;
   /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
   int valueint;
+  /* Added by Sreev. */
+  int valueuint32_t;
   /* The item's number, if type==cJSON_Number */
   double valuedouble;
 
