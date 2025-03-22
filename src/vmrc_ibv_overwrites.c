@@ -189,7 +189,7 @@ VMRC_DEF_VIS int ovwrt_ibv_destroy_cq(struct ibv_cq* verbs_cq) {
   struct mrc_cq* vmrc_cq;
   int mrc_errno;
 
-  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_cq. Not handling cq destroy now. There will be a memory leak");
+  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_cq");
 
   /* Free the dummy verbs context. */
   free(verbs_cq->context);
@@ -322,7 +322,28 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
 /* Overwrite for ibv_destroy_qp. */
 __asm__(".symver ovwrt_ibv_destroy_qp, ibv_destroy_qp@@IBVERBS_1.1");
 VMRC_DEF_VIS int ovwrt_ibv_destroy_qp(struct ibv_qp* verbs_qp) {
-  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_qp. Not handling qp destroy now. There will be a memory leak");
+  struct vmrc_symbols_t* symbols;
+  struct mrc_qp* vmrc_qp;
+  int mrc_errno;
+
+  VMRC_DEBUG_PRINT("In ovwrt_ibv_destroy_qp");
+
+  /* Free the dummy verbs context. */
+  free(verbs_qp->context);
+
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols in verbs-mrc shim layer");
+
+  /* Free MRC qp. */
+  vmrc_qp = (void*)verbs_qp->send_cq;
+  mrc_errno = symbols->mrc_destroy_qp_internal(vmrc_qp);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "mrc_destroy_qp failed");
+
+  /* Free the dummy srq. */
+  free(verbs_qp->srq);
+
+  /* Free the dummy verbs qp. */
+  free(verbs_qp);
 
   return 0;
 }
