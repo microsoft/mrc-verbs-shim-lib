@@ -41,10 +41,10 @@
 #include <float.h>
 #include <limits.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 #ifdef ENABLE_LOCALES
 #include <locale.h>
@@ -326,7 +326,7 @@ loop_end:
   }
 
   /* Added by Sreev. */
-  item->valueuint32_t = (uint32_t) strtoul((const char *)number_c_string, NULL, 0);
+  item->valueuint32_t = (uint32_t)strtoul((const char *)number_c_string, NULL, 0);
 
   item->type = cJSON_Number;
 

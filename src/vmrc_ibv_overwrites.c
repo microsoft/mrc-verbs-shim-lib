@@ -213,8 +213,16 @@ int vmrc_ibv_overwrite_post_send(struct ibv_qp* qp, struct ibv_send_wr* wr, stru
   struct vmrc_symbols_t* symbols;
   struct mrc_qp* vmrc_qp;
   int mrc_errno;
+  struct ibv_send_wr* tmp_wr = wr;
 
   VMRC_DEBUG_PRINT("In vmrc_ibv_overwrite_post_send");
+
+  while (tmp_wr != NULL) {
+    VMRC_CHECK_PRINT_EXIT_VA_ARGS(
+        tmp_wr->opcode == IBV_WR_RDMA_WRITE || tmp_wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM, 1,
+        "Expected opcode to be either RDMA_WRITE or RDMA_WRITE_WITH_IMM. Instead, it is %d", tmp_wr->opcode);
+    tmp_wr = tmp_wr->next;
+  }
 
   /* Get MRC QP from QP's send_cq. */
   vmrc_qp = (void*)qp->send_cq;
