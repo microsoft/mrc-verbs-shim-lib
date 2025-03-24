@@ -39,7 +39,7 @@ CUDA_HOME_PATH=$(dirname $(dirname $(which nvcc)))
 
 ## NCCL
 
-To currently use verbs-mrc with NCCL, you have to build NCCL with the (exported) environment variable `RDMA_CORE` set to 1. This because the shared library `libnccl.so` will have the undefined verbs symbols and any executable when linked with `libnccl.so` has to resolve these symbols at compile time. Otherwise, NCCL loads the verbs symbols at run time while `dlopen` and this requires us to overwrite each and every verbs call that NCCL uses in verbs-mrc. This will be part of future efforts. Building with `RDMA_CORE` set to 1 will allow us to only overwrite the minimal set of functions.
+To currently use verbs-mrc with NCCL, you have to build NCCL with the (exported) environment variable `RDMA_CORE` set to 1. This because, only then, the shared library `libnccl.so` will have the undefined verbs symbols and any executable when linked with `libnccl.so` has to resolve these symbols at compile time. Otherwise, NCCL loads the verbs symbols at run time while `dlopen` and this requires us to overwrite each and every verbs call that NCCL uses in verbs-mrc. This will be part of future efforts. Building with `RDMA_CORE` set to 1 will allow us to only overwrite the minimal set of functions.
 
 However, NCCL currently has a bug which throws a compilation error when compiled with `RDMA_CORE` set to 1. This is because of a missing macro guard in `src/misc/ibwrap.cc`. This can be fixed via the below patch.
 
