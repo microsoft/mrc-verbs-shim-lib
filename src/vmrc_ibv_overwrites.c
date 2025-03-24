@@ -46,6 +46,13 @@ VMRC_DEF_VIS const char* ovwrt_ibv_get_device_name(struct ibv_device* device) {
   return symbols->ibv_get_device_name_internal(device);
 }
 
+struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,
+                                               struct ibv_qp_init_attr_ex* qp_init_attr_ex) {
+  VMRC_CHECK_PRINT_EXIT(NULL, 1, "create_qp_ex cannot be used with verbs-mrc");
+
+  return NULL;
+}
+
 /*
  * Overwrites ibv_open_device. Queries if the device supports MRC. Errors out if the required capability is not present.
  * Creates an ibv_context. Also, creates an mrc_context. Keeps the (ibv_context, mrc_context) key-value pair in the hash
@@ -59,6 +66,7 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   struct mrc_context* vmrc_context;
   struct vmrc_ht* hashtable;
   int mrc_errno;
+  struct verbs_context* vctx;
 
   VMRC_DEBUG_PRINT("In ibv_open_device");
 
@@ -85,6 +93,14 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
 
   /* Insert key, value. */
   vmrc_ht_insert(hashtable, verbs_context, vmrc_context);
+
+  /* Overwrite create_qp_ex. */
+  vctx = verbs_get_ctx_op(verbs_context, create_qp_ex);
+  if (!vctx) {
+    errno = EOPNOTSUPP;
+    return NULL;
+  }
+  vctx->create_qp_ex = &vmrc_ibv_overwrite_create_qp_ex;
 
   return verbs_context;
 }
