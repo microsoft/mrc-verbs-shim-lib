@@ -72,10 +72,10 @@ make -j
 
 # Running with verbs-mrc
 
-While running, `LD_PRELOAD` the verbs-mrc compiled `libibverbs.so`.
+While running, `LD_PRELOAD` the verbs-mrc's `libibverbs.so`.
 
 ```bash
-LD_PRELOAD=<verbs-mrc's libibverbs.so> ...
+LD_PRELOAD=<libibverbs.so from verbs-mrc> ...
 ```
 
 See `run-verbs-mrc.sh` for an example.
