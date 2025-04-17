@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#export MRC_H_PATH=$PWD/mrc-header-lib # This is the default in Makefile.
+export MRC_H_PATH=/opt/mellanox/doca/include/
 export DEBUG=1
 
 #export MRC_LIB_PATH=$PWD/mrc-header-lib
