@@ -426,7 +426,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
 
     /* Fix for DOCA app crashing with zero ev val. */
     for (int i = 0; i < num_evs; ++i) {
-	if (ev_val_array[i] == 0) ev_val_array[i] = 8;
+      if (ev_val_array[i] == 0) ev_val_array[i] = 8;
     }
 
     /* Fill EV states. */

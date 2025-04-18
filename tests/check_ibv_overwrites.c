@@ -13,11 +13,11 @@ int main() {
 
   dev_list = ibv_get_device_list(&num_devices);
   const char** dev_names = (const char**)calloc(num_devices, sizeof(const char*));
-  int idev=-1;
+  int idev = -1;
   for (int i = 0; i < num_devices; ++i) {
     dev_names[i] = ibv_get_device_name(dev_list[i]);
     fprintf(stderr, "dev_name[%2d] = %s\n", i, dev_names[i]);
-    if(strcmp(dev_names[i], "mlx5_1") == 0) idev = i;
+    if (strcmp(dev_names[i], "mlx5_1") == 0) idev = i;
   }
 
   if (idev == -1) {
