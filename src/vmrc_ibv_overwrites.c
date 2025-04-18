@@ -76,8 +76,11 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   verbs_context = symbols->ibv_open_device_internal(device);
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
+  fprintf(stderr, "dev name = %s\n", symbols->ibv_get_device_name_internal(device));
+
   /* Query the device if it has sufficient MRC capability. */
   mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
+  if (mrc_errno != 0)  return verbs_context;
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s", mrc_errno,
                                 strerror(mrc_errno));
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
