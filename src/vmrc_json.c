@@ -61,6 +61,17 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
 
   rem_ipv6_obj = cJSON_GetObjectItem(my_ipv6_obj, rem_ipv6_str);
   //VMRC_CHECK_PRINT_EXIT(rem_ipv6_obj != NULL, 1, "rem_ipv6_obj is NULL");
+  //
+  //
+  *num_evs = 8;
+  ev_list = (uint32_t *)calloc(*num_evs, sizeof(uint32_t));
+  VMRC_CHECK_PRINT_EXIT(ev_list != NULL, 1, "ev_list allocation failed");
+  for (int i = 0; i < *num_evs; ++i) {
+    ev_list[i] = i+1;
+  }
+
+  return ev_list;
+
 
   if(rem_ipv6_obj == NULL) {
 	  *num_evs = 8;
