@@ -78,12 +78,14 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
 
   /* Query the device if it has sufficient MRC capability. */
   mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
-  if (mrc_errno != 0)  {
-	fprintf(stderr,"Dev = %s does not support MRC\n", symbols->ibv_get_device_name_internal(device));
-	  return verbs_context;
+  if (mrc_errno != 0) {
+    VMRC_DEBUG_PRINT_VA_ARGS("Dev %s does not support MRC. Simply returning the verbs context",
+                             symbols->ibv_get_device_name_internal(device));
+    return verbs_context;
   }
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s", mrc_errno,
-                                strerror(mrc_errno));
+  // VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s",
+  // mrc_errno,
+  //                               strerror(mrc_errno));
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
                                 "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
@@ -127,9 +129,9 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
 
   /* Retrieving MRC context and destroying it. */
   vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
-  if(vmrc_context == NULL) {
-	VMRC_DEBUG_PRINT("No matching MRC context found.\n");
-	return symbols->ibv_close_device_internal(verbs_context);
+  if (vmrc_context == NULL) {
+    VMRC_DEBUG_PRINT("No matching MRC context found. Simply closing the device");
+    return symbols->ibv_close_device_internal(verbs_context);
   }
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(vmrc_context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);

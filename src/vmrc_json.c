@@ -60,7 +60,7 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
   VMRC_CHECK_PRINT_EXIT(my_ipv6_obj != NULL, 1, "my_ipv6_obj is NULL");
 
   rem_ipv6_obj = cJSON_GetObjectItem(my_ipv6_obj, rem_ipv6_str);
-  //VMRC_CHECK_PRINT_EXIT(rem_ipv6_obj != NULL, 1, "rem_ipv6_obj is NULL");
+  // VMRC_CHECK_PRINT_EXIT(rem_ipv6_obj != NULL, 1, "rem_ipv6_obj is NULL");
 
   /* If null, then it could be loopback. So, add a simple ev list. */
   if (rem_ipv6_obj == NULL) {
