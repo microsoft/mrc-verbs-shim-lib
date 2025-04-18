@@ -374,7 +374,7 @@ VMRC_DEF_VIS int ovwrt_ibv_destroy_qp(struct ibv_qp* verbs_qp) {
 
 /* Overwrite for ibv_modify_qp. */
 __asm__(".symver ovwrt_ibv_modify_qp, ibv_modify_qp@@IBVERBS_1.1");
-int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int vattr_mask) {
+VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int vattr_mask) {
   struct vmrc_symbols_t* symbols;
   struct mrc_qp* vmrc_qp;
   struct mrc_qp_attr mrc_attr;
@@ -423,6 +423,11 @@ int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int 
     /* Get the EV list from the system.json file. */
     ev_val_array = vmrc_json_get_ev_list(my_ipv6_str, rem_ipv6_str, &num_evs);
     VMRC_CHECK_PRINT_EXIT(ev_val_array, 1, "Unable to get ev val array");
+
+    /* Fix for DOCA app crashing with zero ev val. */
+    for (int i = 0; i < num_evs; ++i) {
+	if (ev_val_array[i] == 0) ev_val_array[i] = 8;
+    }
 
     /* Fill EV states. */
     ev_state_array = (enum mrc_ev_state*)calloc(num_evs, sizeof(enum mrc_ev_state));
