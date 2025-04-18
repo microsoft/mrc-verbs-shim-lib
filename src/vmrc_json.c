@@ -61,7 +61,8 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
 
   rem_ipv6_obj = cJSON_GetObjectItem(my_ipv6_obj, rem_ipv6_str);
   VMRC_CHECK_PRINT_EXIT(rem_ipv6_obj != NULL, 1, "rem_ipv6_obj is NULL");
-  
+
+  /* If null, then it could be loopback. So, add a simple ev list. */
   if (rem_ipv6_obj == NULL) {
     *num_evs = 8;
     ev_list = (uint32_t *)calloc(*num_evs, sizeof(uint32_t));
@@ -84,15 +85,15 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
   VMRC_CHECK_PRINT_EXIT(ev_list != NULL, 1, "ev_list allocation failed");
   for (int i = 0; i < *num_evs; ++i) {
     ev_list[i] = cJSON_GetArrayItem(ps_list, i)->valueuint32_t;
-    if (ev_list[i] == 0) ev_list[i] = 8;
+    if (ev_list[i] == 0) ev_list[i] = 8; /* Zero EV value not allowed in DOCA. So, use 8 to use the same plane. */
   }
 
-  fprintf(stderr, "Printing EV values from json. *num_evs = %d\n", *num_evs);
-  for (int i=0; i<*num_evs; ++i) {
-	  fprintf(stderr, "ev_list[%4d]=%u\n", i, ev_list[i]);
-  }
-  // if(!ev_list ) free(ev_list);
-  // ev_list = NULL;
+  // fprintf(stderr, "Printing EV values from json. *num_evs = %d\n", *num_evs);
+  // for (int i=0; i<*num_evs; ++i) {
+  //         fprintf(stderr, "ev_list[%4d]=%u\n", i, ev_list[i]);
+  // }
+  //  if(!ev_list ) free(ev_list);
+  //  ev_list = NULL;
 
   // *num_evs = 8;
   // ev_list = (uint32_t *)calloc(*num_evs, sizeof(uint32_t));
@@ -101,7 +102,6 @@ uint32_t *vmrc_json_get_ev_list(char *my_ipv6_str, char *rem_ipv6_str, int *num_
   //   ev_list[i] = i;
   //   if (ev_list[i] == 0) ev_list[i] = 8;
   // }
-
   // return ev_list;
 
   return ev_list;
