@@ -1,0 +1,6 @@
+IBVERBS_1.1 {
+    global:
+        ibv_*;
+    local:
+        ovwrt_*;
+};

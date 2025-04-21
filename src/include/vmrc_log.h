@@ -6,7 +6,7 @@
 /* Check if val is 0. If it is not 0, print error message and exit with an error code. */
 #define VMRC_CHECK_PRINT_EXIT(val, errcode, msg) \
   do {                                           \
-    if (!val) {                                  \
+    if (!(val)) {                                \
       fprintf(stderr,                            \
               "verbs-mrc: error: " msg           \
               " (%s:%d)"                         \
@@ -18,7 +18,7 @@
 
 #define VMRC_CHECK_PRINT_EXIT_VA_ARGS(val, errcode, msg, ...) \
   do {                                                        \
-    if (!val) {                                               \
+    if (!(val)) {                                             \
       fprintf(stderr,                                         \
               "verbs-mrc: error: " msg                        \
               " (%s:%d)"                                      \
