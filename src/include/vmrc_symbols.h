@@ -40,10 +40,10 @@ struct vmrc_symbols_t {
   //                                                      enum mrc_ev_state *state_array, uint32_t *val_array);
   // int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
   int (*mrc_query_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
-                               struct mrc_qp_attr *mrc_attr, enum mrc_qp_attr_mask mrc_attr_mask,
+                               struct mrc_qp_attr *mrc_attr, int mrc_attr_mask,
                                struct mrc_qp_init_attr *init_attr);
   int (*mrc_modify_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
-                                struct mrc_qp_attr *mrc_attr, enum mrc_qp_attr_mask mrc_attr_mask);
+                                struct mrc_qp_attr *mrc_attr, int mrc_attr_mask);
   int (*mrc_get_qpn_internal)(struct mrc_qp *qp, uint32_t *qpn);
   int (*mrc_post_recv_internal)(struct mrc_qp *qp, struct ibv_recv_wr *wr, struct ibv_recv_wr **bad_wr);
   int (*mrc_post_send_internal)(struct mrc_qp *qp, struct ibv_send_wr *wr, struct ibv_send_wr **bad_wr);
