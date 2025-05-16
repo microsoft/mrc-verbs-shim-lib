@@ -88,6 +88,10 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   LOAD_MRC_SYM(mrc_handle, "mrc_destroy_cq", cache->mrc_destroy_cq_internal);
   LOAD_MRC_SYM(mrc_handle, "mrc_create_qp", cache->mrc_create_qp_internal);
   LOAD_MRC_SYM(mrc_handle, "mrc_destroy_qp", cache->mrc_destroy_qp_internal);
+  LOAD_MRC_SYM(mrc_handle, "mrc_create_qp_group", cache->mrc_create_qp_group_internal);
+  LOAD_MRC_SYM(mrc_handle, "mrc_destroy_qp_group", cache->mrc_destroy_qp_group_internal);
+  LOAD_MRC_SYM(mrc_handle, "mrc_create_qp_hint", cache->mrc_create_qp_hint_internal);
+  LOAD_MRC_SYM(mrc_handle, "mrc_destroy_qp_hint", cache->mrc_destroy_qp_hint_internal);
   //LOAD_MRC_SYM(mrc_handle, "mrc_create_ev_array", cache->mrc_create_ev_array_internal);
   //LOAD_MRC_SYM(mrc_handle, "mrc_destroy_ev_array", cache->mrc_destroy_ev_array_internal);
   LOAD_MRC_SYM(mrc_handle, "mrc_query_qp", cache->mrc_query_qp_internal);
