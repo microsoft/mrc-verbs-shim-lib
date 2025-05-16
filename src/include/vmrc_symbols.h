@@ -24,7 +24,7 @@ struct vmrc_symbols_t {
    */
 
   int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_attr *attr);
-  struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext, uint32_t mrc_api_version_used);
+  struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext, struct mrc_context_attr *context_attr);
   int (*mrc_destroy_context_internal)(struct mrc_context *mrc_ctx);
   struct mrc_cq *(*mrc_create_cq_internal)(struct mrc_context *mrc_ctx, int cqe, void *cq_context,
                                            struct mrc_comp_channel *channel, int comp_vector);

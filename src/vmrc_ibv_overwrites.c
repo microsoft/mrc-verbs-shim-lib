@@ -64,6 +64,7 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   struct vmrc_symbols_t* symbols;
   struct ibv_context* verbs_context;
   struct mrc_context* vmrc_context;
+  struct mrc_context_attr vmrc_context_attr;
   struct vmrc_ht* hashtable;
   int mrc_errno;
   struct verbs_context* vctx;
@@ -90,7 +91,8 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
                                 "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
 
   /* Create the MRC context. */
-  vmrc_context = symbols->mrc_create_context_internal(verbs_context, attr.mrc_version);
+  memset(&vmrc_context_attr, 0, sizeof(vmrc_context_attr));
+  vmrc_context = symbols->mrc_create_context_internal(verbs_context, &vmrc_context_attr);
   VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not create MRC context");
 
   /* Get the hashtable. */
