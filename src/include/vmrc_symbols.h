@@ -32,9 +32,9 @@ struct vmrc_symbols_t {
   int (*mrc_destroy_cq_internal)(struct mrc_cq *cq);
   struct mrc_qp *(*mrc_create_qp_internal)(struct mrc_context *mrc_ctx, struct mrc_qp_init_attr *mrc_qp_attr);
   int (*mrc_destroy_qp_internal)(struct mrc_qp *qp);
-  struct mrc_ev_array *(*mrc_create_ev_array_internal)(struct mrc_context *mrc_ctx, int count,
-                                                       enum mrc_ev_state *state_array, uint32_t *val_array);
-  int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
+  // struct mrc_ev_array *(*mrc_create_ev_array_internal)(struct mrc_context *mrc_ctx, int count,
+  //                                                      enum mrc_ev_state *state_array, uint32_t *val_array);
+  // int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
   int (*mrc_query_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
                                struct mrc_qp_attr *mrc_attr, enum mrc_qp_attr_mask mrc_attr_mask,
                                struct mrc_qp_init_attr *init_attr);
