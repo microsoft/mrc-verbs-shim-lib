@@ -10,8 +10,6 @@
 #define VMRC_HT_BITS 7
 #define VMRC_HT_SIZE 128
 #define VMRC_HT_ATTR_SIZE 2
-#define VMRC_HT_LL_PTR 0
-#define VMRC_HT_LL_NEXT 1
 
 struct vmrc_ht_linked_list {
   void *ptr_and_next[2];
@@ -74,6 +72,7 @@ void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, q
   new_attr->ptr_and_next[VMRC_HT_LL_NEXT] = attr;
 }
 
+/* Get attr. */
 void* vmrc_ht_attr_get(void *addr_of_value, int idx) {
 
   VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1, "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");

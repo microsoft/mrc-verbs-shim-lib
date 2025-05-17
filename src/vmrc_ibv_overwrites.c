@@ -120,6 +120,7 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   int mrc_errno;
+  void *addr_of_value;
 
   VMRC_DEBUG_PRINT("In ibv_close_device");
 
@@ -130,13 +131,31 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
   /* Retrieving MRC context and destroying it. */
-  vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
+  vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
   if (vmrc_context == NULL) {
     VMRC_DEBUG_PRINT("No matching MRC context found. Simply closing the device");
     return symbols->ibv_close_device_internal(verbs_context);
   }
+
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(vmrc_context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
+
+  /* Destroy all the QP groups. */
+  void *attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_GROUP_IDX);
+  while (attr != NULL) {
+    struct mrc_qp_group *qp_group = *((struct mrc_qp_group **) (attr + VMRC_HT_LL_PTR * sizeof(void *)));
+    mrc_errno = symbols->mrc_destroy_qp_group_internal(qp_group);
+    attr = *((void **) (attr + VMRC_HT_LL_NEXT * sizeof(void *)));
+  }
+
+  /* Destroy all the QP hints. */
+  attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
+  while (attr != NULL) {
+    struct mrc_qp_hint *qp_hint = *((struct mrc_qp_hint **) (attr + VMRC_HT_LL_PTR * sizeof(void *)));
+    mrc_errno = symbols->mrc_destroy_qp_hint_internal(qp_hint);
+    attr = *((void **) (attr + VMRC_HT_LL_NEXT * sizeof(void *)));
+  }
+
   mrc_errno = symbols->mrc_destroy_context_internal(vmrc_context);
   VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "Error in mrc_destroy_context");
 
