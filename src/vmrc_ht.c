@@ -10,10 +10,11 @@
 #define VMRC_HT_BITS 7
 #define VMRC_HT_SIZE 128
 #define VMRC_HT_ATTR_SIZE 2
+#define VMRC_HT_LL_PTR 0
+#define VMRC_HT_LL_NEXT 1
 
 struct vmrc_ht_linked_list {
-  void *ptr;
-  struct vmrc_ht_linked_list *next;
+  void *ptr_and_next[2];
 };
 
 /* Hashtable entry. */
@@ -69,8 +70,17 @@ void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, q
   struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
   struct vmrc_ht_linked_list *attr = (struct vmrc_ht_linked_list *)entry->attr[idx];
 
-  new_attr->ptr = ptr;
-  new_attr->next = attr;
+  new_attr->ptr_and_next[VMRC_HT_LL_PTR] = ptr;
+  new_attr->ptr_and_next[VMRC_HT_LL_NEXT] = attr;
+}
+
+void* vmrc_ht_attr_get(void *addr_of_value, int idx) {
+
+  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1, "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
+
+  struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
+  struct vmrc_ht_linked_list *attr = (struct vmrc_ht_linked_list *)entry->attr[idx];
+  return (void *)attr;
 }
 
 /* Search for a value by key in the hashtable. */
