@@ -15,7 +15,7 @@ struct vmrc_ht;
 struct vmrc_ht *vmrc_ht_get();
 void vmrc_ht_insert(struct vmrc_ht *hashtable, void *key, void *value);
 void vmrc_ht_attr_insert(void *addr_of_value, void *ptr, int idx);
-void* vmrc_ht_attr_get(void *addr_of_value, int idx);
+void *vmrc_ht_attr_get(void *addr_of_value, int idx);
 void *vmrc_ht_search(struct vmrc_ht *hashtable, void *key);
 void *vmrc_ht_search_plus_addr(struct vmrc_ht *hashtable, void *key, void **addr_of_value);
 void vmrc_ht_free(struct vmrc_ht *hashtable);

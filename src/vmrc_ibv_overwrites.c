@@ -120,7 +120,7 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   int mrc_errno;
-  void *addr_of_value;
+  void* addr_of_value;
 
   VMRC_DEBUG_PRINT("In ibv_close_device");
 
@@ -141,19 +141,19 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
                                 verbs_context);
 
   /* Destroy all the QP groups. */
-  void *attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_GROUP_IDX);
+  void* attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_GROUP_IDX);
   while (attr != NULL) {
-    struct mrc_qp_group *qp_group = *((struct mrc_qp_group **) (attr + VMRC_HT_LL_PTR * sizeof(void *)));
+    struct mrc_qp_group* qp_group = *((struct mrc_qp_group**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
     mrc_errno = symbols->mrc_destroy_qp_group_internal(qp_group);
-    attr = *((void **) (attr + VMRC_HT_LL_NEXT * sizeof(void *)));
+    attr = *((void**)(attr + VMRC_HT_LL_NEXT * sizeof(void*)));
   }
 
   /* Destroy all the QP hints. */
   attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
   while (attr != NULL) {
-    struct mrc_qp_hint *qp_hint = *((struct mrc_qp_hint **) (attr + VMRC_HT_LL_PTR * sizeof(void *)));
+    struct mrc_qp_hint* qp_hint = *((struct mrc_qp_hint**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
     mrc_errno = symbols->mrc_destroy_qp_hint_internal(qp_hint);
-    attr = *((void **) (attr + VMRC_HT_LL_NEXT * sizeof(void *)));
+    attr = *((void**)(attr + VMRC_HT_LL_NEXT * sizeof(void*)));
   }
 
   mrc_errno = symbols->mrc_destroy_context_internal(vmrc_context);
@@ -418,7 +418,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   struct mrc_qp_group* vmrc_qp_group;
   struct mrc_qp_hint_init_attr vmrc_qp_hint_init_attr;
   struct mrc_qp_hint* vmrc_qp_hint;
-  void *addr_of_value = NULL;
+  void* addr_of_value = NULL;
 
   VMRC_DEBUG_PRINT("In ibv_modify_qp");
 
@@ -429,32 +429,34 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   vmrc_qp = (void*)verbs_qp->send_cq;
 
   if (vattr->qp_state == IBV_QPS_INIT) {
-
     /* Get MRC context. */
     verbs_context = (void*)verbs_qp->pd;
     hashtable = vmrc_ht_get();
     VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
     vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
     VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
-    
+
     /* Create MRC QP group. */
     memset(&vmrc_qp_group_init_attr, 0, sizeof(struct mrc_qp_group_init_attr));
     vmrc_qp_group_init_attr.attr.num_qps = 1;
-    vmrc_qp_group = symbols->mrc_create_qp_group_internal(vmrc_context, &vmrc_qp_group_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
-    vmrc_ht_attr_insert(addr_of_value, (void *) vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
+    vmrc_qp_group = symbols->mrc_create_qp_group_internal(
+        vmrc_context,
+        &vmrc_qp_group_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
 
     /* Create MRC QP hint. */
     memset(&vmrc_qp_hint_init_attr, 0, sizeof(struct mrc_qp_hint_init_attr));
     vmrc_qp_hint_init_attr.attr.qp_group = vmrc_qp_group;
     vmrc_qp_hint_init_attr.attr.num_qps_per_peer = 1;
     vmrc_qp_hint_init_attr.attr.num_send_peers = 1;
-    vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(vmrc_context, &vmrc_qp_hint_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
-    vmrc_ht_attr_insert(addr_of_value, (void *) vmrc_qp_hint, VMRC_HT_ATTR_QP_HINT_IDX);
+    vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(
+        vmrc_context,
+        &vmrc_qp_hint_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_hint, VMRC_HT_ATTR_QP_HINT_IDX);
 
     mrc_attr_mask = MRC_QP_HINT;
     memset(&mrc_attr, 0, sizeof(struct mrc_qp_attr));
     mrc_attr.qp_hint = vmrc_qp_hint;
-
 
   } else if (vattr->qp_state == IBV_QPS_RTR) {
     union ibv_gid my_gid;

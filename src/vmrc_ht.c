@@ -19,7 +19,8 @@ struct vmrc_ht_linked_list {
 struct vmrc_ht_entry {
   void *value; /* mrc_context ptr. */
   void *key;   /* ibv_context ptr. */
-  struct vmrc_ht_linked_list *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints and QP groups allocated for this MRC context. */
+  struct vmrc_ht_linked_list
+      *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints and QP groups allocated for this MRC context. */
   struct vmrc_ht_entry *next;
 };
 
@@ -58,9 +59,10 @@ void vmrc_ht_insert(struct vmrc_ht *hashtable, void *key, void *value) {
 }
 
 /* Insert attr corresponding to a value. */
-void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, qp_hint*/, int idx /* VMRC_HT_ATTR_QP_GROUP_IDX, VMRC_HT_ATTR_QP_HINT_IDX*/) {
-
-  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1, "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
+void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, qp_hint*/,
+                         int idx /* VMRC_HT_ATTR_QP_GROUP_IDX, VMRC_HT_ATTR_QP_HINT_IDX*/) {
+  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1,
+                        "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
 
   struct vmrc_ht_linked_list *new_attr = calloc(1, sizeof(struct vmrc_ht_linked_list));
   VMRC_CHECK_PRINT_EXIT(new_attr, 1, "Could not allocate new attr");
@@ -74,9 +76,9 @@ void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, q
 }
 
 /* Get attr. */
-void* vmrc_ht_attr_get(void *addr_of_value, int idx) {
-
-  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1, "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
+void *vmrc_ht_attr_get(void *addr_of_value, int idx) {
+  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1,
+                        "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
 
   struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
   struct vmrc_ht_linked_list *attr = (struct vmrc_ht_linked_list *)entry->attr[idx];
