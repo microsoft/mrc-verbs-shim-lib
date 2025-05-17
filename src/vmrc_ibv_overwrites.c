@@ -399,6 +399,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   struct mrc_qp_group* vmrc_qp_group;
   struct mrc_qp_hint_init_attr vmrc_qp_hint_init_attr;
   struct mrc_qp_hint* vmrc_qp_hint;
+  void *addr_of_value = NULL;
 
   VMRC_DEBUG_PRINT("In ibv_modify_qp");
 
@@ -414,13 +415,14 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     verbs_context = (void*)verbs_qp->pd;
     hashtable = vmrc_ht_get();
     VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
-    vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
+    vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
     VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
     
     /* Create MRC QP group. */
     memset(&vmrc_qp_group_init_attr, 0, sizeof(struct mrc_qp_group_init_attr));
     vmrc_qp_group_init_attr.attr.num_qps = 1;
     vmrc_qp_group = symbols->mrc_create_qp_group_internal(vmrc_context, &vmrc_qp_group_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_ht_attr_insert(addr_of_value, (void *) vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
 
     /* Create MRC QP hint. */
     memset(&vmrc_qp_hint_init_attr, 0, sizeof(struct mrc_qp_hint_init_attr));
@@ -428,6 +430,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     vmrc_qp_hint_init_attr.attr.num_qps_per_peer = 1;
     vmrc_qp_hint_init_attr.attr.num_send_peers = 1;
     vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(vmrc_context, &vmrc_qp_hint_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_ht_attr_insert(addr_of_value, (void *) vmrc_qp_hint, VMRC_HT_ATTR_QP_HINT_IDX);
 
     mrc_attr_mask = MRC_QP_HINT;
     memset(&mrc_attr, 0, sizeof(struct mrc_qp_attr));
