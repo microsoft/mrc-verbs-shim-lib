@@ -66,10 +66,11 @@ void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, q
   VMRC_CHECK_PRINT_EXIT(new_attr, 1, "Could not allocate new attr");
 
   struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
-  struct vmrc_ht_linked_list *attr = (struct vmrc_ht_linked_list *)entry->attr[idx];
+  struct vmrc_ht_linked_list *attr = entry->attr[idx];
 
   new_attr->ptr_and_next[VMRC_HT_LL_PTR] = ptr;
   new_attr->ptr_and_next[VMRC_HT_LL_NEXT] = attr;
+  entry->attr[idx] = new_attr;
 }
 
 /* Get attr. */
