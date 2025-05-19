@@ -372,7 +372,10 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
 
   /* Put the actual verbs context in verbs_qp->pd. This will be used to get gid of this QP when the QP is transitioned
    * to INIT and to get the matching MRC context while creating EV array. */
-  verbs_qp->pd = (void*)verbs_context;
+  //verbs_qp->pd = (void*)verbs_context;
+  /* Above design had an issue MRC April release + NCCL. Put the verbs context in verbs_qp->recv_cq. */
+  verbs_qp->pd = pd;
+  verbs_qp->recv_cq = (void *)verbs_context;
 
   /* Allocate 128 bits (16 uint8_t) and assign the pointer to srq. This will be used to store the gid raw of this QP. */
   verbs_qp->srq = (void*)calloc(16, sizeof(uint8_t));
@@ -436,7 +439,8 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
 
   if (vattr->qp_state == IBV_QPS_INIT) {
     /* Get MRC context. */
-    verbs_context = (void*)verbs_qp->pd;
+    //verbs_context = (void*)verbs_qp->pd;
+    verbs_context = (void*)verbs_qp->recv_cq;
     hashtable = vmrc_ht_get();
     VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
     vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
@@ -476,7 +480,8 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
                           "vattr->ah_attr.is_global is not 1. verbs_mrc only accepts global gids\n");
 
     /* Get the GID of this QP and store it in verbs_qp->srq. Assume correct port_num is passed during RTR transition. */
-    verbs_context = (void*)verbs_qp->pd;
+    //verbs_context = (void*)verbs_qp->pd;
+    verbs_context = (void*)verbs_qp->recv_cq;
     VMRC_CHECK_PRINT_EXIT(symbols->ibv_query_gid_internal(verbs_context, vattr->ah_attr.port_num,
                                                           vattr->ah_attr.grh.sgid_index, &my_gid) == 0,
                           1, "ibv_query_gid failed");
