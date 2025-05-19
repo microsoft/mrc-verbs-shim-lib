@@ -87,8 +87,14 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   // VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s",
   // mrc_errno,
   //                               strerror(mrc_errno));
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
-                                "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
+  if (attr.mrc_version != (uint32_t)MRC_VERSION_0) {
+    VMRC_INFO_PRINT_VA_ARGS("MRC not supported. attr.mrc_version = %d for dev = %s. Returning verbs context.",
+                            attr.mrc_version, symbols->ibv_get_device_name_internal(device));
+    return verbs_context;
+  }
+  // VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
+  //                               "MRC not supported. attr.mrc_version = %d for dev = %s", attr.mrc_version,
+  //                               symbols->ibv_get_device_name_internal(device));
 
   /* Create the MRC context. */
   memset(&vmrc_context_attr, 0, sizeof(vmrc_context_attr));
