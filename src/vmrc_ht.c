@@ -116,8 +116,16 @@ void *vmrc_ht_search_plus_addr(struct vmrc_ht *hashtable, void *key, void **addr
 void vmrc_ht_free(struct vmrc_ht *hashtable) {
   for (int i = 0; i < VMRC_HT_SIZE; i++) {
     struct vmrc_ht_entry *entry = hashtable->table[i];
-    /* Release the memory allocated for the linked list as well. There is a memory leak currently because of this. */
+    /* Release the memory allocated for the linked list as well. Otherwise, there will be a memory leak. */
     while (entry != NULL) {
+      for (int iattr = 0; iattr < VMRC_HT_ATTR_SIZE; iattr++) {
+        struct vmrc_ht_linked_list *attr = entry->attr[iattr];
+	while (attr != NULL) {
+	  struct vmrc_ht_linked_list *temp_attr = attr;
+	  attr = (struct vmrc_ht_linked_list *) attr->ptr_and_next[VMRC_HT_LL_NEXT];
+	  free(temp_attr);
+	}
+      }
       struct vmrc_ht_entry *temp = entry;
       entry = entry->next;
       free(temp);
