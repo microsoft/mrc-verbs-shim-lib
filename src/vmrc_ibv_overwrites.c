@@ -383,6 +383,42 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   return verbs_qp;
 }
 
+/*
+ * Overwrite of ibv_query_qp.
+ */
+
+__asm__(".symver ovwrt_ibv_query_qp, ibv_query_qp@@IBVERBS_1.1");
+VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp *verbs_qp, struct ibv_qp_attr *vattr,
+		 int vattr_mask,
+		 struct ibv_qp_init_attr *vinit_attr) {
+  struct vmrc_symbols_t* symbols;
+  int mrc_err_no;
+  struct mrc_qp_init_attr mrc_init_attr;
+  struct mrc_qp *vmrc_qp;
+  struct mrc_qp_attr mrc_attr;
+  int mrc_attr_mask = 0;
+
+  VMRC_DEBUG_PRINT("In ibv_query_qp");
+
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
+
+  /* Get MRC qp. */
+  vmrc_qp = (void*)verbs_qp->send_cq;
+
+  /* Call mrc query qp internal using mrc_qp and mrc_init_attr. */
+  mrc_err_no = symbols->mrc_query_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask, &mrc_init_attr);
+  //
+  /* From the returned mrc_qp_init_attr, fill init_attr (verbs attr). */
+
+  fprintf(stderr, "In process of implementing ibv_query_qp overwrite\n");
+  exit(1);
+
+  //return symbols->ibv_query_qp_internal(device);
+}
+
+
+
 /* Overwrite for ibv_destroy_qp. */
 __asm__(".symver ovwrt_ibv_destroy_qp, ibv_destroy_qp@@IBVERBS_1.1");
 VMRC_DEF_VIS int ovwrt_ibv_destroy_qp(struct ibv_qp* verbs_qp) {
