@@ -465,6 +465,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   struct mrc_qp_hint_init_attr vmrc_qp_hint_init_attr;
   struct mrc_qp_hint* vmrc_qp_hint;
   void* addr_of_value = NULL;
+  int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_modify_qp");
 
@@ -561,6 +562,8 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   } else if (vattr->qp_state == IBV_QPS_RTS) {
     mrc_attr_mask = 0U; /* No MRC related attr mask. */
   }
+  mrc_errno = symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
+  if (mrc_errno == 0) verbs_qp->state = vattr->qp_state; /* Reflect the new state in verbs qp. */
 
-  return symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
+  return mrc_errno;
 }
