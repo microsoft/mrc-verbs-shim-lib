@@ -120,11 +120,11 @@ void vmrc_ht_free(struct vmrc_ht *hashtable) {
     while (entry != NULL) {
       for (int iattr = 0; iattr < VMRC_HT_ATTR_SIZE; iattr++) {
         struct vmrc_ht_linked_list *attr = entry->attr[iattr];
-	while (attr != NULL) {
-	  struct vmrc_ht_linked_list *temp_attr = attr;
-	  attr = (struct vmrc_ht_linked_list *) attr->ptr_and_next[VMRC_HT_LL_NEXT];
-	  free(temp_attr);
-	}
+        while (attr != NULL) {
+          struct vmrc_ht_linked_list *temp_attr = attr;
+          attr = (struct vmrc_ht_linked_list *)attr->ptr_and_next[VMRC_HT_LL_NEXT];
+          free(temp_attr);
+        }
       }
       struct vmrc_ht_entry *temp = entry;
       entry = entry->next;

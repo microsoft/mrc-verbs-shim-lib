@@ -372,10 +372,10 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
 
   /* Put the actual verbs context in verbs_qp->pd. This will be used to get gid of this QP when the QP is transitioned
    * to INIT and to get the matching MRC context while creating EV array. */
-  //verbs_qp->pd = (void*)verbs_context;
+  // verbs_qp->pd = (void*)verbs_context;
   /* Above design had an issue MRC April release + NCCL. Put the verbs context in verbs_qp->recv_cq. */
   verbs_qp->pd = pd;
-  verbs_qp->recv_cq = (void *)verbs_context;
+  verbs_qp->recv_cq = (void*)verbs_context;
 
   /* Allocate 128 bits (16 uint8_t) and assign the pointer to srq. This will be used to store the gid raw of this QP. */
   verbs_qp->srq = (void*)calloc(16, sizeof(uint8_t));
@@ -388,13 +388,12 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
  */
 
 __asm__(".symver ovwrt_ibv_query_qp, ibv_query_qp@@IBVERBS_1.1");
-VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp *verbs_qp, struct ibv_qp_attr *vattr,
-		 int vattr_mask,
-		 struct ibv_qp_init_attr *vinit_attr) {
+VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int vattr_mask,
+                                            struct ibv_qp_init_attr* vinit_attr) {
   struct vmrc_symbols_t* symbols;
-  int mrc_err_no;
+  int mrc_errno;
   struct mrc_qp_init_attr mrc_init_attr;
-  struct mrc_qp *vmrc_qp;
+  struct mrc_qp* vmrc_qp;
   struct mrc_qp_attr mrc_attr;
   int mrc_attr_mask = 0;
 
@@ -407,17 +406,19 @@ VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp *verbs_qp, struct ibv_
   vmrc_qp = (void*)verbs_qp->send_cq;
 
   /* Call mrc query qp internal using mrc_qp and mrc_init_attr. */
-  mrc_err_no = symbols->mrc_query_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask, &mrc_init_attr);
-  //
+  mrc_errno = symbols->mrc_query_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask, &mrc_init_attr);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "mrc_query_qp failed");
+
   /* From the returned mrc_qp_init_attr, fill init_attr (verbs attr). */
-
-  fprintf(stderr, "In process of implementing ibv_query_qp overwrite\n");
-  exit(1);
-
-  //return symbols->ibv_query_qp_internal(device);
+  vinit_attr->qp_context = mrc_init_attr.qp_context;
+  /* If the user uses mrc_init_attr.send_cq, it might result in error. Hence, sending back NULL. */
+  vinit_attr->send_cq = NULL;
+  /* If the user uses mrc_init_attr.recv_cq, it might result in error. Hence, sending back NULL. */
+  vinit_attr->recv_cq = NULL;
+  vinit_attr->qp_type = IBV_QPT_RC;
+  vinit_attr->cap = mrc_init_attr.cap;
+  vinit_attr->sq_sig_all = mrc_init_attr.sq_sig_all;
 }
-
-
 
 /* Overwrite for ibv_destroy_qp. */
 __asm__(".symver ovwrt_ibv_destroy_qp, ibv_destroy_qp@@IBVERBS_1.1");
@@ -475,7 +476,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
 
   if (vattr->qp_state == IBV_QPS_INIT) {
     /* Get MRC context. */
-    //verbs_context = (void*)verbs_qp->pd;
+    // verbs_context = (void*)verbs_qp->pd;
     verbs_context = (void*)verbs_qp->recv_cq;
     hashtable = vmrc_ht_get();
     VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
@@ -516,7 +517,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
                           "vattr->ah_attr.is_global is not 1. verbs_mrc only accepts global gids\n");
 
     /* Get the GID of this QP and store it in verbs_qp->srq. Assume correct port_num is passed during RTR transition. */
-    //verbs_context = (void*)verbs_qp->pd;
+    // verbs_context = (void*)verbs_qp->pd;
     verbs_context = (void*)verbs_qp->recv_cq;
     VMRC_CHECK_PRINT_EXIT(symbols->ibv_query_gid_internal(verbs_context, vattr->ah_attr.port_num,
                                                           vattr->ah_attr.grh.sgid_index, &my_gid) == 0,
