@@ -313,6 +313,7 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   struct mrc_qp* vmrc_qp;
   struct ibv_qp* verbs_qp;
   struct mrc_qp_init_attr mrc_qp_attr;
+  void* ptr;
   int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_create_qp");
@@ -377,8 +378,14 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   verbs_qp->pd = pd;
   verbs_qp->recv_cq = (void*)verbs_context;
 
-  /* Allocate 128 bits (16 uint8_t) and assign the pointer to srq. This will be used to store the gid raw of this QP. */
-  verbs_qp->srq = (void*)calloc(16, sizeof(uint8_t));
+  /* Allocate 128 bits (16 uint8_t) + 2 void * entries and assign the pointer to srq. This will be used to store the gid
+   * raw of this QP and for storing the input send_cq and recv_cq. */
+  verbs_qp->srq = (void*)calloc(16 + 2 * (sizeof(void*) / sizeof(uint8_t)), sizeof(uint8_t));
+  ptr = (void*)verbs_qp->srq;
+  ptr = ptr + (16 / sizeof(void*)); /* 16 bytes aka 128 bits */
+  ptr = (void*)qp_init_attr->send_cq;
+  ptr = ptr + 1;
+  ptr = (void*)qp_init_attr->recv_cq;
 
   return verbs_qp;
 }
@@ -396,6 +403,7 @@ VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp* verbs_qp, struct ibv_
   struct mrc_qp* vmrc_qp;
   struct mrc_qp_attr mrc_attr;
   int mrc_attr_mask = 0;
+  void* ptr;
 
   VMRC_DEBUG_PRINT("In ibv_query_qp");
 
@@ -411,10 +419,11 @@ VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp* verbs_qp, struct ibv_
 
   /* From the returned mrc_qp_init_attr, fill init_attr (verbs attr). */
   vinit_attr->qp_context = mrc_init_attr.qp_context;
-  /* If the user uses mrc_init_attr.send_cq, it might result in error. Hence, sending back NULL. */
-  vinit_attr->send_cq = NULL;
-  /* If the user uses mrc_init_attr.recv_cq, it might result in error. Hence, sending back NULL. */
-  vinit_attr->recv_cq = NULL;
+  ptr = (void*)verbs_qp->srq;
+  ptr = ptr + (16 / sizeof(void*)); /* First 128 bits are for the raw gid. */
+  vinit_attr->send_cq = (void*)ptr;
+  ptr = ptr + 1;
+  vinit_attr->recv_cq = (void*)ptr;
   vinit_attr->qp_type = IBV_QPT_RC;
   vinit_attr->cap = mrc_init_attr.cap;
   vinit_attr->sq_sig_all = mrc_init_attr.sq_sig_all;
@@ -563,7 +572,9 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     mrc_attr_mask = 0U; /* No MRC related attr mask. */
   }
   mrc_errno = symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
-  if (mrc_errno == 0) verbs_qp->state = vattr->qp_state; /* Reflect the new state in verbs qp. */
+  if (mrc_errno == 0)
+    verbs_qp->state =
+        vattr->qp_state; /* Reflect the new state in the dummy verbs qp. NCCL accesses ->state in ibvModifyQpLog */
 
   return mrc_errno;
 }
