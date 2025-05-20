@@ -84,17 +84,11 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
                              symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
-  // VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s",
-  // mrc_errno,
-  //                               strerror(mrc_errno));
   if (attr.mrc_version == (uint32_t)MRC_VERSION_0) {
     VMRC_INFO_PRINT_VA_ARGS("MRC not supported. attr.mrc_version = %d for dev = %s. Returning verbs context.",
                             attr.mrc_version, symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
-  // VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
-  //                               "MRC not supported. attr.mrc_version = %d for dev = %s", attr.mrc_version,
-  //                               symbols->ibv_get_device_name_internal(device));
 
   /* Create the MRC context. */
   memset(&vmrc_context_attr, 0, sizeof(vmrc_context_attr));
@@ -372,9 +366,7 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   verbs_qp->context = dummy_verbs_context;
 
   /* Put the actual verbs context in verbs_qp->pd. This will be used to get gid of this QP when the QP is transitioned
-   * to INIT and to get the matching MRC context while creating EV array. */
-  // verbs_qp->pd = (void*)verbs_context;
-  /* Above design had an issue MRC April release + NCCL. Put the verbs context in verbs_qp->recv_cq. */
+   * to INIT and to get the matching MRC context while creating EV array. Put the verbs context in verbs_qp->recv_cq. */
   verbs_qp->pd = pd;
   verbs_qp->recv_cq = (void*)verbs_context;
 
@@ -486,7 +478,6 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
 
   if (vattr->qp_state == IBV_QPS_INIT) {
     /* Get MRC context. */
-    // verbs_context = (void*)verbs_qp->pd;
     verbs_context = (void*)verbs_qp->recv_cq;
     hashtable = vmrc_ht_get();
     VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
@@ -496,9 +487,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     /* Create MRC QP group. */
     memset(&vmrc_qp_group_init_attr, 0, sizeof(struct mrc_qp_group_init_attr));
     vmrc_qp_group_init_attr.attr.num_qps = 1;
-    vmrc_qp_group = symbols->mrc_create_qp_group_internal(
-        vmrc_context,
-        &vmrc_qp_group_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_qp_group = symbols->mrc_create_qp_group_internal(vmrc_context, &vmrc_qp_group_init_attr);
     vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
 
     /* Create MRC QP hint. */
@@ -506,9 +495,7 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     vmrc_qp_hint_init_attr.attr.qp_group = vmrc_qp_group;
     vmrc_qp_hint_init_attr.attr.num_qps_per_peer = 1;
     vmrc_qp_hint_init_attr.attr.num_send_peers = 1;
-    vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(
-        vmrc_context,
-        &vmrc_qp_hint_init_attr); /* There will be a memory leak here; fix this once you get a working version. */
+    vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(vmrc_context, &vmrc_qp_hint_init_attr);
     vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_hint, VMRC_HT_ATTR_QP_HINT_IDX);
 
     mrc_attr_mask = MRC_QP_HINT;
@@ -517,17 +504,11 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
 
   } else if (vattr->qp_state == IBV_QPS_RTR) {
     union ibv_gid my_gid;
-    // char my_ipv6_str[INET6_ADDRSTRLEN], rem_ipv6_str[INET6_ADDRSTRLEN];
-    // int num_evs;
-    // uint32_t* ev_val_array;
-    // enum mrc_ev_state* ev_state_array;
-    // struct mrc_ev_array* vmrc_ev_array;
 
     VMRC_CHECK_PRINT_EXIT(vattr->ah_attr.is_global == 1, 1,
                           "vattr->ah_attr.is_global is not 1. verbs_mrc only accepts global gids\n");
 
     /* Get the GID of this QP and store it in verbs_qp->srq. Assume correct port_num is passed during RTR transition. */
-    // verbs_context = (void*)verbs_qp->pd;
     verbs_context = (void*)verbs_qp->recv_cq;
     VMRC_CHECK_PRINT_EXIT(symbols->ibv_query_gid_internal(verbs_context, vattr->ah_attr.port_num,
                                                           vattr->ah_attr.grh.sgid_index, &my_gid) == 0,
@@ -536,45 +517,16 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     /* Store my_gid.raw (128 bits) in (void *) verbs_qp->srq. */
     memcpy((void*)verbs_qp->srq, my_gid.raw, 16);
 
-    /* Get my and remote NIC's ipv6 str. I verified that inet_ntop returns compressed ipv6. If it does not in some OS,
-     * need to write a function that compresses ipv6. */
-    // inet_ntop(AF_INET6, my_gid.raw, my_ipv6_str, INET6_ADDRSTRLEN);
-    // inet_ntop(AF_INET6, vattr->ah_attr.grh.dgid.raw, rem_ipv6_str, INET6_ADDRSTRLEN);
-
-    // /* Get the EV list from the system.json file. */
-    // ev_val_array = vmrc_json_get_ev_list(my_ipv6_str, rem_ipv6_str, &num_evs);
-    // VMRC_CHECK_PRINT_EXIT(ev_val_array, 1, "Unable to get ev val array");
-
-    // /* Fill EV states. */
-    // ev_state_array = (enum mrc_ev_state*)calloc(num_evs, sizeof(enum mrc_ev_state));
-    // for (int i = 0; i < num_evs; ++i) {
-    //   ev_state_array[i] = MRC_EV_GOOD;
-    // }
-
-    // /* Get MRC context. */
-    // hashtable = vmrc_ht_get();
-    // VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
-    // vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
-    // VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
-
-    // /* Create an mrc_ev_array from the list. */
-    // vmrc_ev_array = symbols->mrc_create_ev_array_internal(vmrc_context, num_evs, ev_state_array, ev_val_array);
-
     /* Set the mrc_attr and mrc_attr_mask to pass in the mrc_ev_array. */
     mrc_attr_mask = 0U;
     memset(&mrc_attr, 0, sizeof(mrc_attr));
-
-    // /* Free EV state and value arrays. */
-    // free(ev_state_array);
-    // free(ev_val_array);
 
   } else if (vattr->qp_state == IBV_QPS_RTS) {
     mrc_attr_mask = 0U; /* No MRC related attr mask. */
   }
   mrc_errno = symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
-  if (mrc_errno == 0)
-    verbs_qp->state =
-        vattr->qp_state; /* Reflect the new state in the dummy verbs qp. NCCL accesses ->state in ibvModifyQpLog */
+  /* Reflect the new state in the dummy verbs qp. NCCL accesses ->state in ibvModifyQpLog */
+  if (mrc_errno == 0) verbs_qp->state = vattr->qp_state;
 
   return mrc_errno;
 }
