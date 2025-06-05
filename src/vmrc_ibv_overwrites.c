@@ -64,6 +64,7 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   struct vmrc_symbols_t* symbols;
   struct ibv_context* verbs_context;
   struct mrc_context* vmrc_context;
+  struct mrc_context_attr vmrc_context_attr;
   struct vmrc_ht* hashtable;
   int mrc_errno;
   struct verbs_context* vctx;
@@ -83,14 +84,15 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
                              symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
-  // VMRC_CHECK_PRINT_EXIT_VA_ARGS(mrc_errno == 0, 1, "Error while calling mrc_query_device. Returned %d. %s",
-  // mrc_errno,
-  //                               strerror(mrc_errno));
-  VMRC_CHECK_PRINT_EXIT_VA_ARGS(attr.mrc_version != (uint32_t)MRC_VERSION_0, 1,
-                                "MRC not supported. attr.mrc_version = %d", attr.mrc_version);
+  if (attr.mrc_version == (uint32_t)MRC_VERSION_0) {
+    VMRC_INFO_PRINT_VA_ARGS("MRC not supported. attr.mrc_version = %d for dev = %s. Returning verbs context.",
+                            attr.mrc_version, symbols->ibv_get_device_name_internal(device));
+    return verbs_context;
+  }
 
   /* Create the MRC context. */
-  vmrc_context = symbols->mrc_create_context_internal(verbs_context, attr.mrc_version);
+  memset(&vmrc_context_attr, 0, sizeof(vmrc_context_attr));
+  vmrc_context = symbols->mrc_create_context_internal(verbs_context, &vmrc_context_attr);
   VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not create MRC context");
 
   /* Get the hashtable. */
@@ -118,6 +120,7 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   int mrc_errno;
+  void* addr_of_value;
 
   VMRC_DEBUG_PRINT("In ibv_close_device");
 
@@ -128,13 +131,31 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
 
   /* Retrieving MRC context and destroying it. */
-  vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
+  vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
   if (vmrc_context == NULL) {
     VMRC_DEBUG_PRINT("No matching MRC context found. Simply closing the device");
     return symbols->ibv_close_device_internal(verbs_context);
   }
+
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(vmrc_context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
+
+  /* Destroy all the QP groups. */
+  void* attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_GROUP_IDX);
+  while (attr != NULL) {
+    struct mrc_qp_group* qp_group = *((struct mrc_qp_group**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
+    mrc_errno = symbols->mrc_destroy_qp_group_internal(qp_group);
+    attr = *((void**)(attr + VMRC_HT_LL_NEXT * sizeof(void*)));
+  }
+
+  /* Destroy all the QP hints. */
+  attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
+  while (attr != NULL) {
+    struct mrc_qp_hint* qp_hint = *((struct mrc_qp_hint**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
+    mrc_errno = symbols->mrc_destroy_qp_hint_internal(qp_hint);
+    attr = *((void**)(attr + VMRC_HT_LL_NEXT * sizeof(void*)));
+  }
+
   mrc_errno = symbols->mrc_destroy_context_internal(vmrc_context);
   VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "Error in mrc_destroy_context");
 
@@ -286,6 +307,7 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   struct mrc_qp* vmrc_qp;
   struct ibv_qp* verbs_qp;
   struct mrc_qp_init_attr mrc_qp_attr;
+  void* ptr;
   int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_create_qp");
@@ -344,13 +366,59 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
   verbs_qp->context = dummy_verbs_context;
 
   /* Put the actual verbs context in verbs_qp->pd. This will be used to get gid of this QP when the QP is transitioned
-   * to INIT and to get the matching MRC context while creating EV array. */
-  verbs_qp->pd = (void*)verbs_context;
+   * to INIT and to get the matching MRC context while creating EV array. Put the verbs context in verbs_qp->recv_cq. */
+  verbs_qp->pd = pd;
+  verbs_qp->recv_cq = (void*)verbs_context;
 
-  /* Allocate 128 bits (16 uint8_t) and assign the pointer to srq. This will be used to store the gid raw of this QP. */
-  verbs_qp->srq = (void*)calloc(16, sizeof(uint8_t));
+  /* Allocate 128 bits (16 uint8_t) + 2 void * entries and assign the pointer to srq. This will be used to store the gid
+   * raw of this QP and for storing the input send_cq and recv_cq. */
+  verbs_qp->srq = (void*)calloc(16 + 2 * (sizeof(void*) / sizeof(uint8_t)), sizeof(uint8_t));
+  ptr = (void*)verbs_qp->srq;
+  ptr = ptr + (16 / sizeof(void*)); /* 16 bytes aka 128 bits */
+  ptr = (void*)qp_init_attr->send_cq;
+  ptr = ptr + 1;
+  ptr = (void*)qp_init_attr->recv_cq;
 
   return verbs_qp;
+}
+
+/*
+ * Overwrite of ibv_query_qp.
+ */
+
+__asm__(".symver ovwrt_ibv_query_qp, ibv_query_qp@@IBVERBS_1.1");
+VMRC_DEF_VIS const char* ovwrt_ibv_query_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int vattr_mask,
+                                            struct ibv_qp_init_attr* vinit_attr) {
+  struct vmrc_symbols_t* symbols;
+  int mrc_errno;
+  struct mrc_qp_init_attr mrc_init_attr;
+  struct mrc_qp* vmrc_qp;
+  struct mrc_qp_attr mrc_attr;
+  int mrc_attr_mask = 0;
+  void* ptr;
+
+  VMRC_DEBUG_PRINT("In ibv_query_qp");
+
+  symbols = vmrc_symbols_get();
+  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
+
+  /* Get MRC qp. */
+  vmrc_qp = (void*)verbs_qp->send_cq;
+
+  /* Call mrc query qp internal using mrc_qp and mrc_init_attr. */
+  mrc_errno = symbols->mrc_query_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask, &mrc_init_attr);
+  VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "mrc_query_qp failed");
+
+  /* From the returned mrc_qp_init_attr, fill init_attr (verbs attr). */
+  vinit_attr->qp_context = mrc_init_attr.qp_context;
+  ptr = (void*)verbs_qp->srq;
+  ptr = ptr + (16 / sizeof(void*)); /* First 128 bits are for the raw gid. */
+  vinit_attr->send_cq = (void*)ptr;
+  ptr = ptr + 1;
+  vinit_attr->recv_cq = (void*)ptr;
+  vinit_attr->qp_type = IBV_QPT_RC;
+  vinit_attr->cap = mrc_init_attr.cap;
+  vinit_attr->sq_sig_all = mrc_init_attr.sq_sig_all;
 }
 
 /* Overwrite for ibv_destroy_qp. */
@@ -388,11 +456,17 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   struct vmrc_symbols_t* symbols;
   struct mrc_qp* vmrc_qp;
   struct mrc_qp_attr mrc_attr;
-  enum mrc_qp_attr_mask mrc_attr_mask;
+  int mrc_attr_mask;
   struct ibv_context* verbs_context;
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   uint8_t* gid_raw;
+  struct mrc_qp_group_init_attr vmrc_qp_group_init_attr;
+  struct mrc_qp_group* vmrc_qp_group;
+  struct mrc_qp_hint_init_attr vmrc_qp_hint_init_attr;
+  struct mrc_qp_hint* vmrc_qp_hint;
+  void* addr_of_value = NULL;
+  int mrc_errno;
 
   VMRC_DEBUG_PRINT("In ibv_modify_qp");
 
@@ -403,21 +477,39 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   vmrc_qp = (void*)verbs_qp->send_cq;
 
   if (vattr->qp_state == IBV_QPS_INIT) {
-    mrc_attr_mask = 0U; /* No MRC related attr mask. */
+    /* Get MRC context. */
+    verbs_context = (void*)verbs_qp->recv_cq;
+    hashtable = vmrc_ht_get();
+    VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
+    vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
+    VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
+
+    /* Create MRC QP group. */
+    memset(&vmrc_qp_group_init_attr, 0, sizeof(struct mrc_qp_group_init_attr));
+    vmrc_qp_group_init_attr.attr.num_qps = 1;
+    vmrc_qp_group = symbols->mrc_create_qp_group_internal(vmrc_context, &vmrc_qp_group_init_attr);
+    vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
+
+    /* Create MRC QP hint. */
+    memset(&vmrc_qp_hint_init_attr, 0, sizeof(struct mrc_qp_hint_init_attr));
+    vmrc_qp_hint_init_attr.attr.qp_group = vmrc_qp_group;
+    vmrc_qp_hint_init_attr.attr.num_qps_per_peer = 1;
+    vmrc_qp_hint_init_attr.attr.num_send_peers = 1;
+    vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(vmrc_context, &vmrc_qp_hint_init_attr);
+    vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_hint, VMRC_HT_ATTR_QP_HINT_IDX);
+
+    mrc_attr_mask = MRC_QP_HINT;
+    memset(&mrc_attr, 0, sizeof(struct mrc_qp_attr));
+    mrc_attr.qp_hint = vmrc_qp_hint;
 
   } else if (vattr->qp_state == IBV_QPS_RTR) {
     union ibv_gid my_gid;
-    char my_ipv6_str[INET6_ADDRSTRLEN], rem_ipv6_str[INET6_ADDRSTRLEN];
-    int num_evs;
-    uint32_t* ev_val_array;
-    enum mrc_ev_state* ev_state_array;
-    struct mrc_ev_array* vmrc_ev_array;
 
     VMRC_CHECK_PRINT_EXIT(vattr->ah_attr.is_global == 1, 1,
                           "vattr->ah_attr.is_global is not 1. verbs_mrc only accepts global gids\n");
 
     /* Get the GID of this QP and store it in verbs_qp->srq. Assume correct port_num is passed during RTR transition. */
-    verbs_context = (void*)verbs_qp->pd;
+    verbs_context = (void*)verbs_qp->recv_cq;
     VMRC_CHECK_PRINT_EXIT(symbols->ibv_query_gid_internal(verbs_context, vattr->ah_attr.port_num,
                                                           vattr->ah_attr.grh.sgid_index, &my_gid) == 0,
                           1, "ibv_query_gid failed");
@@ -425,41 +517,16 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     /* Store my_gid.raw (128 bits) in (void *) verbs_qp->srq. */
     memcpy((void*)verbs_qp->srq, my_gid.raw, 16);
 
-    /* Get my and remote NIC's ipv6 str. I verified that inet_ntop returns compressed ipv6. If it does not in some OS,
-     * need to write a function that compresses ipv6. */
-    inet_ntop(AF_INET6, my_gid.raw, my_ipv6_str, INET6_ADDRSTRLEN);
-    inet_ntop(AF_INET6, vattr->ah_attr.grh.dgid.raw, rem_ipv6_str, INET6_ADDRSTRLEN);
-
-    /* Get the EV list from the system.json file. */
-    ev_val_array = vmrc_json_get_ev_list(my_ipv6_str, rem_ipv6_str, &num_evs);
-    VMRC_CHECK_PRINT_EXIT(ev_val_array, 1, "Unable to get ev val array");
-
-    /* Fill EV states. */
-    ev_state_array = (enum mrc_ev_state*)calloc(num_evs, sizeof(enum mrc_ev_state));
-    for (int i = 0; i < num_evs; ++i) {
-      ev_state_array[i] = MRC_EV_GOOD;
-    }
-
-    /* Get MRC context. */
-    hashtable = vmrc_ht_get();
-    VMRC_CHECK_PRINT_EXIT(hashtable, 1, "Could not get context hashtable");
-    vmrc_context = (struct mrc_context*)vmrc_ht_search(hashtable, verbs_context);
-    VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
-
-    /* Create an mrc_ev_array from the list. */
-    vmrc_ev_array = symbols->mrc_create_ev_array_internal(vmrc_context, num_evs, ev_state_array, ev_val_array);
-
     /* Set the mrc_attr and mrc_attr_mask to pass in the mrc_ev_array. */
-    mrc_attr_mask = MRC_QP_ATTR_EV_ARRAY;
-    mrc_attr.ev_array = vmrc_ev_array;
-
-    /* Free EV state and value arrays. */
-    free(ev_state_array);
-    free(ev_val_array);
+    mrc_attr_mask = 0U;
+    memset(&mrc_attr, 0, sizeof(mrc_attr));
 
   } else if (vattr->qp_state == IBV_QPS_RTS) {
     mrc_attr_mask = 0U; /* No MRC related attr mask. */
   }
+  mrc_errno = symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
+  /* Reflect the new state in the dummy verbs qp. NCCL accesses ->state in ibvModifyQpLog */
+  if (mrc_errno == 0) verbs_qp->state = vattr->qp_state;
 
-  return symbols->mrc_modify_qp_internal(vmrc_qp, vattr, vattr_mask, &mrc_attr, mrc_attr_mask);
+  return mrc_errno;
 }

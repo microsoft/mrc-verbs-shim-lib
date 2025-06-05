@@ -9,11 +9,18 @@
 /* Hash table size should be 2^bits. */
 #define VMRC_HT_BITS 7
 #define VMRC_HT_SIZE 128
+#define VMRC_HT_ATTR_SIZE 2
+
+struct vmrc_ht_linked_list {
+  void *ptr_and_next[2];
+};
 
 /* Hashtable entry. */
 struct vmrc_ht_entry {
-  void *key;   /* ibv_context ptr. */
   void *value; /* mrc_context ptr. */
+  void *key;   /* ibv_context ptr. */
+  struct vmrc_ht_linked_list
+      *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints and QP groups allocated for this MRC context. */
   struct vmrc_ht_entry *next;
 };
 
@@ -51,6 +58,33 @@ void vmrc_ht_insert(struct vmrc_ht *hashtable, void *key, void *value) {
   hashtable->table[index] = new_entry;
 }
 
+/* Insert attr corresponding to a value. */
+void vmrc_ht_attr_insert(void *addr_of_value /*&value*/, void *ptr /*qp_group, qp_hint*/,
+                         int idx /* VMRC_HT_ATTR_QP_GROUP_IDX, VMRC_HT_ATTR_QP_HINT_IDX*/) {
+  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1,
+                        "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
+
+  struct vmrc_ht_linked_list *new_attr = calloc(1, sizeof(struct vmrc_ht_linked_list));
+  VMRC_CHECK_PRINT_EXIT(new_attr, 1, "Could not allocate new attr");
+
+  struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
+  struct vmrc_ht_linked_list *attr = entry->attr[idx];
+
+  new_attr->ptr_and_next[VMRC_HT_LL_PTR] = ptr;
+  new_attr->ptr_and_next[VMRC_HT_LL_NEXT] = attr;
+  entry->attr[idx] = new_attr;
+}
+
+/* Get attr. */
+void *vmrc_ht_attr_get(void *addr_of_value, int idx) {
+  VMRC_CHECK_PRINT_EXIT((idx >= 0) && (idx < VMRC_HT_ATTR_SIZE), 1,
+                        "idx should be an integer in the range [0,VMRC_HT_ATTR_SIZE)");
+
+  struct vmrc_ht_entry *entry = (struct vmrc_ht_entry *)addr_of_value; /* value is the first entry of entry */
+  struct vmrc_ht_linked_list *attr = (struct vmrc_ht_linked_list *)entry->attr[idx];
+  return (void *)attr;
+}
+
 /* Search for a value by key in the hashtable. */
 void *vmrc_ht_search(struct vmrc_ht *hashtable, void *key) {
   unsigned int index = knuth_hash_64(key);
@@ -64,11 +98,34 @@ void *vmrc_ht_search(struct vmrc_ht *hashtable, void *key) {
   return NULL;
 }
 
+/* Search for a value by key in the hashtable. Also, return the address where the value is stored. */
+void *vmrc_ht_search_plus_addr(struct vmrc_ht *hashtable, void *key, void **addr_of_value) {
+  unsigned int index = knuth_hash_64(key);
+  struct vmrc_ht_entry *entry = hashtable->table[index];
+  while (entry != NULL) {
+    if (entry->key == key) {
+      *addr_of_value = &entry->value; /* Same as entry since value is the first entry. */
+      return entry->value;
+    }
+    entry = entry->next;
+  }
+  return NULL;
+}
+
 /* Free the memory allocated for the hashtable. */
 void vmrc_ht_free(struct vmrc_ht *hashtable) {
   for (int i = 0; i < VMRC_HT_SIZE; i++) {
     struct vmrc_ht_entry *entry = hashtable->table[i];
+    /* Release the memory allocated for the linked list as well. Otherwise, there will be a memory leak. */
     while (entry != NULL) {
+      for (int iattr = 0; iattr < VMRC_HT_ATTR_SIZE; iattr++) {
+        struct vmrc_ht_linked_list *attr = entry->attr[iattr];
+        while (attr != NULL) {
+          struct vmrc_ht_linked_list *temp_attr = attr;
+          attr = (struct vmrc_ht_linked_list *)attr->ptr_and_next[VMRC_HT_LL_NEXT];
+          free(temp_attr);
+        }
+      }
       struct vmrc_ht_entry *temp = entry;
       entry = entry->next;
       free(temp);

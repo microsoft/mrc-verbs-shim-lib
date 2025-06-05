@@ -24,7 +24,8 @@ struct vmrc_symbols_t {
    */
 
   int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_attr *attr);
-  struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext, uint32_t mrc_api_version_used);
+  struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext,
+                                                     struct mrc_context_attr *context_attr);
   int (*mrc_destroy_context_internal)(struct mrc_context *mrc_ctx);
   struct mrc_cq *(*mrc_create_cq_internal)(struct mrc_context *mrc_ctx, int cqe, void *cq_context,
                                            struct mrc_comp_channel *channel, int comp_vector);
@@ -32,14 +33,19 @@ struct vmrc_symbols_t {
   int (*mrc_destroy_cq_internal)(struct mrc_cq *cq);
   struct mrc_qp *(*mrc_create_qp_internal)(struct mrc_context *mrc_ctx, struct mrc_qp_init_attr *mrc_qp_attr);
   int (*mrc_destroy_qp_internal)(struct mrc_qp *qp);
-  struct mrc_ev_array *(*mrc_create_ev_array_internal)(struct mrc_context *mrc_ctx, int count,
-                                                       enum mrc_ev_state *state_array, uint32_t *val_array);
-  int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
+  struct mrc_qp_group *(*mrc_create_qp_group_internal)(struct mrc_context *mrc_ctx,
+                                                       struct mrc_qp_group_init_attr *init_attr);
+  int (*mrc_destroy_qp_group_internal)(struct mrc_qp_group *qp_group);
+  struct mrc_qp_hint *(*mrc_create_qp_hint_internal)(struct mrc_context *mrc_ctx,
+                                                     struct mrc_qp_hint_init_attr *init_attr);
+  int (*mrc_destroy_qp_hint_internal)(struct mrc_qp_hint *qp_hint);
+  // struct mrc_ev_array *(*mrc_create_ev_array_internal)(struct mrc_context *mrc_ctx, int count,
+  //                                                      enum mrc_ev_state *state_array, uint32_t *val_array);
+  // int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
   int (*mrc_query_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
-                               struct mrc_qp_attr *mrc_attr, enum mrc_qp_attr_mask mrc_attr_mask,
-                               struct mrc_qp_init_attr *init_attr);
+                               struct mrc_qp_attr *mrc_attr, int mrc_attr_mask, struct mrc_qp_init_attr *init_attr);
   int (*mrc_modify_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
-                                struct mrc_qp_attr *mrc_attr, enum mrc_qp_attr_mask mrc_attr_mask);
+                                struct mrc_qp_attr *mrc_attr, int mrc_attr_mask);
   int (*mrc_get_qpn_internal)(struct mrc_qp *qp, uint32_t *qpn);
   int (*mrc_post_recv_internal)(struct mrc_qp *qp, struct ibv_recv_wr *wr, struct ibv_recv_wr **bad_wr);
   int (*mrc_post_send_internal)(struct mrc_qp *qp, struct ibv_send_wr *wr, struct ibv_send_wr **bad_wr);
