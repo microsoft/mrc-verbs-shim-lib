@@ -23,7 +23,7 @@ struct vmrc_symbols_t {
    * MRC symbols.
    */
 
-  int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_attr *attr);
+  int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_attr *attr, int *supported);
   struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext,
                                                      struct mrc_context_attr *context_attr);
   int (*mrc_destroy_context_internal)(struct mrc_context *mrc_ctx);
