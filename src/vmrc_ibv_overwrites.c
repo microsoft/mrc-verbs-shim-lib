@@ -68,6 +68,7 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   struct vmrc_ht* hashtable;
   int mrc_errno;
   struct verbs_context* vctx;
+  int mrc_supported;
 
   VMRC_DEBUG_PRINT("In ibv_open_device");
 
@@ -78,15 +79,15 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   VMRC_CHECK_PRINT_EXIT(verbs_context, 1, "ibv_open_device failed");
 
   /* Query the device if it has sufficient MRC capability. */
-  mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr);
+  mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr, &mrc_supported);
   if (mrc_errno != 0) {
-    VMRC_DEBUG_PRINT_VA_ARGS("Dev %s does not support MRC. Simply returning the verbs context",
-                             symbols->ibv_get_device_name_internal(device));
+    VMRC_DEBUG_PRINT_VA_ARGS("Dev %s does not appear to support MRC. mrc_errno = %d. Simply returning the verbs context",
+                             symbols->ibv_get_device_name_internal(device), mrc_errno);
     return verbs_context;
   }
-  if (attr.mrc_version == (uint32_t)MRC_VERSION_0) {
-    VMRC_INFO_PRINT_VA_ARGS("MRC not supported. attr.mrc_version = %d for dev = %s. Returning verbs context.",
-                            attr.mrc_version, symbols->ibv_get_device_name_internal(device));
+  if (!mrc_supported) {
+    VMRC_INFO_PRINT_VA_ARGS("MRC not supported. mrc_supported = %d for dev = %s. Returning verbs context.",
+                            mrc_supported, symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
 
