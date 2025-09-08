@@ -4,8 +4,7 @@
 #ifndef _VMRC_HT_H_
 #define _VMRC_HT_H_
 
-#define VMRC_HT_ATTR_QP_GROUP_IDX 0
-#define VMRC_HT_ATTR_QP_HINT_IDX 1
+#define VMRC_HT_ATTR_QP_HINT_IDX 0
 
 #define VMRC_HT_LL_PTR 0
 #define VMRC_HT_LL_NEXT 1

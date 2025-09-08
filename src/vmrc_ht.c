@@ -9,7 +9,7 @@
 /* Hash table size should be 2^bits. */
 #define VMRC_HT_BITS 7
 #define VMRC_HT_SIZE 128
-#define VMRC_HT_ATTR_SIZE 2
+#define VMRC_HT_ATTR_SIZE 1
 
 struct vmrc_ht_linked_list {
   void *ptr_and_next[2];
@@ -20,7 +20,7 @@ struct vmrc_ht_entry {
   void *value; /* mrc_context ptr. */
   void *key;   /* ibv_context ptr. */
   struct vmrc_ht_linked_list
-      *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints and QP groups allocated for this MRC context. */
+      *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints allocated for this MRC context. */
   struct vmrc_ht_entry *next;
 };
 
