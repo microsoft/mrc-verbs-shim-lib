@@ -33,9 +33,6 @@ struct vmrc_symbols_t {
   int (*mrc_destroy_cq_internal)(struct mrc_cq *cq);
   struct mrc_qp *(*mrc_create_qp_internal)(struct mrc_context *mrc_ctx, struct mrc_qp_init_attr *mrc_qp_attr);
   int (*mrc_destroy_qp_internal)(struct mrc_qp *qp);
-  struct mrc_qp_group *(*mrc_create_qp_group_internal)(struct mrc_context *mrc_ctx,
-                                                       struct mrc_qp_group_init_attr *init_attr);
-  int (*mrc_destroy_qp_group_internal)(struct mrc_qp_group *qp_group);
   struct mrc_qp_hint *(*mrc_create_qp_hint_internal)(struct mrc_context *mrc_ctx,
                                                      struct mrc_qp_hint_init_attr *init_attr);
   int (*mrc_destroy_qp_hint_internal)(struct mrc_qp_hint *qp_hint);

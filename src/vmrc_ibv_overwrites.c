@@ -141,16 +141,8 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
   VMRC_CHECK_PRINT_EXIT_VA_ARGS(vmrc_context, 1, "Could not find the matching MRC context for verbs context %p",
                                 verbs_context);
 
-  /* Destroy all the QP groups. */
-  void* attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_GROUP_IDX);
-  while (attr != NULL) {
-    struct mrc_qp_group* qp_group = *((struct mrc_qp_group**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
-    mrc_errno = symbols->mrc_destroy_qp_group_internal(qp_group);
-    attr = *((void**)(attr + VMRC_HT_LL_NEXT * sizeof(void*)));
-  }
-
   /* Destroy all the QP hints. */
-  attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
+  void* attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
   while (attr != NULL) {
     struct mrc_qp_hint* qp_hint = *((struct mrc_qp_hint**)(attr + VMRC_HT_LL_PTR * sizeof(void*)));
     mrc_errno = symbols->mrc_destroy_qp_hint_internal(qp_hint);
@@ -462,8 +454,6 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
   struct vmrc_ht* hashtable;
   struct mrc_context* vmrc_context;
   uint8_t* gid_raw;
-  struct mrc_qp_group_init_attr vmrc_qp_group_init_attr;
-  struct mrc_qp_group* vmrc_qp_group;
   struct mrc_qp_hint_init_attr vmrc_qp_hint_init_attr;
   struct mrc_qp_hint* vmrc_qp_hint;
   void* addr_of_value = NULL;
@@ -485,15 +475,8 @@ VMRC_DEF_VIS int ovwrt_ibv_modify_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr
     vmrc_context = (struct mrc_context*)vmrc_ht_search_plus_addr(hashtable, verbs_context, &addr_of_value);
     VMRC_CHECK_PRINT_EXIT(vmrc_context, 1, "Could not find matching MRC context");
 
-    /* Create MRC QP group. */
-    memset(&vmrc_qp_group_init_attr, 0, sizeof(struct mrc_qp_group_init_attr));
-    vmrc_qp_group_init_attr.attr.num_qps = 1;
-    vmrc_qp_group = symbols->mrc_create_qp_group_internal(vmrc_context, &vmrc_qp_group_init_attr);
-    vmrc_ht_attr_insert(addr_of_value, (void*)vmrc_qp_group, VMRC_HT_ATTR_QP_GROUP_IDX);
-
     /* Create MRC QP hint. */
     memset(&vmrc_qp_hint_init_attr, 0, sizeof(struct mrc_qp_hint_init_attr));
-    vmrc_qp_hint_init_attr.attr.qp_group = vmrc_qp_group;
     vmrc_qp_hint_init_attr.attr.num_qps_per_peer = 1;
     vmrc_qp_hint_init_attr.attr.num_send_peers = 1;
     vmrc_qp_hint = symbols->mrc_create_qp_hint_internal(vmrc_context, &vmrc_qp_hint_init_attr);
