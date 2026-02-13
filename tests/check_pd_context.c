@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /* NCCL uses ibv_create_qp which takes a protection domain (pd) as an input. However, mrc_create_qp takes a mrc_context
  * as an input and hence is equivalent to ibv_create_qp_ex. One way to get around this is that `struct ibv_pd` has a
  * `struct ibv_context *` in it. This should ideally be pointer to the ibv_context used to created the pd. This program

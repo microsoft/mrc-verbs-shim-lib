@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include "include/vmrc_ht.h"
 
 #include <stdint.h>

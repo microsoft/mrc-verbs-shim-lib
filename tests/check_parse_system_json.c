@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>

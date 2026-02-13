@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _VMRC_LOG_H_
 #define _VMRC_LOG_H_
 

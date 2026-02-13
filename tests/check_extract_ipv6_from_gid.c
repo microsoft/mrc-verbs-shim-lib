@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #include <arpa/inet.h>
 #include <infiniband/verbs.h>
 #include <stdio.h>
