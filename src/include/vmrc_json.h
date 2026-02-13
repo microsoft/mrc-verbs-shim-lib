@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _VMRC_JSON_H_
 #define _VMRC_JSON_H_
 

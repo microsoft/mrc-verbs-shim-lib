@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /* Load all verbs symbols to a structure. */
 
 #define _GNU_SOURCE
