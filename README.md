@@ -1,6 +1,6 @@
 # Introduction
 
-verbs-mrc is a collection of verbs function overwrites that enable MRC capabilities with verbs application that uses `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` ops. Primary applications that will use this include the vanilla ibverbs perftests and NCCL. Other important applications include MPRScrub and the many-to-many perftest.
+verbs-mrc is a collection of verbs function overwrites that enable MRC capabilities with verbs application that uses `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` ops. Primary applications that will use this include the vanilla ibverbs perftests and NCCL.
 
 # Building verbs-mrc
 
@@ -30,7 +30,7 @@ To use verbs-mrc with ibverbs perftest, you have to build the perftest with `--d
          qp_index++;
 ```
 
-Please see b2ccb69c87452978025ff2ce7aa7b86335e1cb26 commit in MPRScrub. Once this is fixed, build perftest as:
+Once the above fix is applied, build perftest as:
 
 ```bash
 CUDA_HOME_PATH=$(dirname $(dirname $(which nvcc)))
