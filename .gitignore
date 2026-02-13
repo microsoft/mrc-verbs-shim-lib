@@ -4,10 +4,6 @@ src/*.o
 *.so
 *.so.*
 
-# Dependency directories
-mrc-header-lib/
-!mrc-header-lib/system.json
-
 # All test executables.
 tests/*
 !tests/*.c
