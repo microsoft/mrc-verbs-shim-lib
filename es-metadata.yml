@@ -1,12 +1,1 @@
-schemaVersion: 1.0.0
-providers:
-- provider: InventoryAsCode
-  version: 1.0.0
-  metadata:
-    isProduction: false
-    accountableOwners:
-      service: 53ed86d2-2404-43b0-b7be-903b45386319
-    routing:
-      defaultAreaPath:
-        org: msazure
-        path: One\Big Compute
+--- 
