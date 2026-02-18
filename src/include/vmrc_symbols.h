@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 #ifndef _VMRC_SYMBOLS_H_
 #define _VMRC_SYMBOLS_H_
 
@@ -36,9 +39,7 @@ struct vmrc_symbols_t {
   struct mrc_qp_hint *(*mrc_create_qp_hint_internal)(struct mrc_context *mrc_ctx,
                                                      struct mrc_qp_hint_init_attr *init_attr);
   int (*mrc_destroy_qp_hint_internal)(struct mrc_qp_hint *qp_hint);
-  // struct mrc_ev_array *(*mrc_create_ev_array_internal)(struct mrc_context *mrc_ctx, int count,
-  //                                                      enum mrc_ev_state *state_array, uint32_t *val_array);
-  // int (*mrc_destroy_ev_array_internal)(struct mrc_ev_array *ev_array);
+
   int (*mrc_query_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,
                                struct mrc_qp_attr *mrc_attr, int mrc_attr_mask, struct mrc_qp_init_attr *init_attr);
   int (*mrc_modify_qp_internal)(struct mrc_qp *qp, struct ibv_qp_attr *vattr, int vattr_mask,

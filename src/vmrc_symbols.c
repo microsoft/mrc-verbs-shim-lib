@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /* Load all verbs symbols to a structure. */
 
 #define _GNU_SOURCE
@@ -100,7 +103,8 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
 
 teardown:
   if (cache) free(cache);
-  if (!ibv_handle) dlclose(ibv_handle);
-  if (!mrc_handle) dlclose(mrc_handle);
+  cache = NULL;
+  if (ibv_handle) dlclose(ibv_handle);
+  if (mrc_handle) dlclose(mrc_handle);
   return NULL;
 }

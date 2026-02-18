@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /* We need a hashtable to map ibv_context ptrs to mrc_context ptrs. Both ibv_context and mrc_context need to be alive
  * throughout the duration of the program. */
 

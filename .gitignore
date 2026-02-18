@@ -1,8 +1,13 @@
 # Object files
 src/*.o
+*.o
 *.so
+*.so.*
 
 # All test executables.
 tests/*
 !tests/*.c
+
+# Build artifacts
+*.a
 

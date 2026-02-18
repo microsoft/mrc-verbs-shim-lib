@@ -72,7 +72,7 @@ tests: $(TESTS_OBJ)
 $(TESTS_OBJ): %: %.c libibverbs.so
 	$(CC) $(CFLAGS) $< -o $@ -libverbs $(LDFLAGS)
 
-# Formatting (taken from Yang's addition to MRPScrub).
+# Formatting.
 
 FORMAT_SOURCES=$(SRCS) $(HEADERS) $(TESTS_INTERNAL) $(TESTS)
 
