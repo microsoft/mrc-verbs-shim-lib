@@ -46,27 +46,12 @@
 
 /* Define all the usual symbols. */
 VMRC_WRAP_SYMVER(ibv_get_device_list, "IBVERBS_1.1", struct ibv_device**, (int* num_devices), (num_devices))
+VMRC_WRAP_SYMVER(ibv_get_device_name, "IBVERBS_1.1", const char*, (struct ibv_device* device), (device))
 
-/*
- * Test overwrite of ibv_get_device_name.
- */
-
-__asm__(".symver ovwrt_ibv_get_device_name, ibv_get_device_name@@IBVERBS_1.1");
-VMRC_DEF_VIS const char* ovwrt_ibv_get_device_name(struct ibv_device* device) {
-  struct vmrc_symbols_t* symbols;
-
-  VMRC_DEBUG_PRINT("In ibv_get_device_name");
-
-  symbols = vmrc_symbols_get();
-  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
-
-  return symbols->ibv_get_device_name_internal(device);
-}
-
+/* We cannot overwrite qp_ex with shim since ibv_create_qp_ex is a function pointer. */
 struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,
                                                struct ibv_qp_init_attr_ex* qp_init_attr_ex) {
   VMRC_CHECK_PRINT_EXIT(NULL, 1, "create_qp_ex cannot be used with verbs-mrc");
-
   return NULL;
 }
 
