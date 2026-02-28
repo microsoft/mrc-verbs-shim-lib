@@ -18,21 +18,6 @@
 
 #define VMRC_DEF_VIS __attribute__((visibility("default")))
 
-// /*
-//  * Test overwrite of ibv_get_device_list.
-//  */
-// __asm__(".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
-// VMRC_DEF_VIS struct ibv_device** ovwrt_ibv_get_device_list(int* num_devices) {
-//   struct vmrc_symbols_t* symbols;
-//
-//   VMRC_DEBUG_PRINT("In ibv_get_device_list");
-//
-//   symbols = vmrc_symbols_get();
-//   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
-//
-//   return symbols->ibv_get_device_list_internal(num_devices);
-// }
-
 /* Versioned symbol alias and defines a wrapper that calls <name>_internal. */
 #define VMRC_WRAP_SYMVER(name, ver, rettype, params, args)      \
   __asm__(".symver ovwrt_" #name ", " #name "@@" ver);          \
@@ -45,8 +30,12 @@
   }
 
 /* Define all the usual symbols. */
+/* struct ibv_device **ibv_get_device_list(int *num_devices); */
+/* To do: Double check on the IBVERBS_1.1 versioining ... */
 VMRC_WRAP_SYMVER(ibv_get_device_list, "IBVERBS_1.1", struct ibv_device**, (int* num_devices), (num_devices))
+/* const char *ibv_get_device_name(struct ibv_device *device); */
 VMRC_WRAP_SYMVER(ibv_get_device_name, "IBVERBS_1.1", const char*, (struct ibv_device* device), (device))
+
 
 /* We cannot overwrite qp_ex with shim since ibv_create_qp_ex is a function pointer. */
 struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,
