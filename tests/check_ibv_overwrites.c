@@ -26,8 +26,8 @@ int main() {
     fprintf(stderr, "dev_name[%2d] = %s\n", i, dev_names[i]);
   }
 
-  /* Open the first device. */
-  context = ibv_open_device(dev_list[0]);
+  // /* Open the first device. */
+  // context = ibv_open_device(dev_list[0]);
 
   return 0;
 }

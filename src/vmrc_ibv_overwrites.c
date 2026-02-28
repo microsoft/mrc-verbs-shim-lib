@@ -18,20 +18,34 @@
 
 #define VMRC_DEF_VIS __attribute__((visibility("default")))
 
-/*
- * Test overwrite of ibv_get_device_list.
- */
-__asm__(".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
-VMRC_DEF_VIS struct ibv_device** ovwrt_ibv_get_device_list(int* num_devices) {
-  struct vmrc_symbols_t* symbols;
+// /*
+//  * Test overwrite of ibv_get_device_list.
+//  */
+// __asm__(".symver ovwrt_ibv_get_device_list, ibv_get_device_list@@IBVERBS_1.1");
+// VMRC_DEF_VIS struct ibv_device** ovwrt_ibv_get_device_list(int* num_devices) {
+//   struct vmrc_symbols_t* symbols;
+//
+//   VMRC_DEBUG_PRINT("In ibv_get_device_list");
+//
+//   symbols = vmrc_symbols_get();
+//   VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
+//
+//   return symbols->ibv_get_device_list_internal(num_devices);
+// }
 
-  VMRC_DEBUG_PRINT("In ibv_get_device_list");
+/* Versioned symbol alias and defines a wrapper that calls <name>_internal. */
+#define VMRC_WRAP_SYMVER(name, ver, rettype, params, args)      \
+  __asm__(".symver ovwrt_" #name ", " #name "@@" ver);          \
+  VMRC_DEF_VIS rettype ovwrt_##name params {                    \
+    struct vmrc_symbols_t* symbols;                             \
+    VMRC_DEBUG_PRINT("In " #name);                              \
+    symbols = vmrc_symbols_get();                               \
+    VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols"); \
+    return symbols->name##_internal args;                       \
+  }
 
-  symbols = vmrc_symbols_get();
-  VMRC_CHECK_PRINT_EXIT(symbols, 1, "Could not get symbols");
-
-  return symbols->ibv_get_device_list_internal(num_devices);
-}
+/* Define all the usual symbols. */
+VMRC_WRAP_SYMVER(ibv_get_device_list, "IBVERBS_1.1", struct ibv_device**, (int* num_devices), (num_devices))
 
 /*
  * Test overwrite of ibv_get_device_name.
@@ -84,8 +98,9 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   /* Query the device if it has sufficient MRC capability. */
   mrc_errno = symbols->mrc_query_device_internal(verbs_context, &attr, &mrc_supported);
   if (mrc_errno != 0) {
-    VMRC_DEBUG_PRINT_VA_ARGS("Dev %s does not appear to support MRC. mrc_errno = %d. Simply returning the verbs context",
-                             symbols->ibv_get_device_name_internal(device), mrc_errno);
+    VMRC_DEBUG_PRINT_VA_ARGS(
+        "Dev %s does not appear to support MRC. mrc_errno = %d. Simply returning the verbs context",
+        symbols->ibv_get_device_name_internal(device), mrc_errno);
     return verbs_context;
   }
   if (!mrc_supported) {

@@ -20,10 +20,9 @@ struct vmrc_ht_linked_list {
 
 /* Hashtable entry. */
 struct vmrc_ht_entry {
-  void *value; /* mrc_context ptr. */
-  void *key;   /* ibv_context ptr. */
-  struct vmrc_ht_linked_list
-      *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints allocated for this MRC context. */
+  void *value;                                         /* mrc_context ptr. */
+  void *key;                                           /* ibv_context ptr. */
+  struct vmrc_ht_linked_list *attr[VMRC_HT_ATTR_SIZE]; /* To store the QP hints allocated for this MRC context. */
   struct vmrc_ht_entry *next;
 };
 

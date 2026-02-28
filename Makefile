@@ -2,7 +2,9 @@ CC = gcc
 CFLAGS += -fPIC
 DEBUG ?= 0
 MKFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-MRC_H_PATH ?= $(MKFILE_DIR)/mrc-header-lib # Pass MRC_H_PATH
+ifndef MRC_H_PATH
+$(error MRC_H_PATH is not defined. Please set it to the path of the header path of the MRC library.)
+endif
 
 $(info MRC_H_PATH set to $(MRC_H_PATH))
 
