@@ -34,8 +34,7 @@
 /* To do: Double check on the IBVERBS_1.1 versioining ... */
 VMRC_WRAP_SYMVER(ibv_get_device_list, "IBVERBS_1.1", struct ibv_device**, (int* num_devices), (num_devices))
 /* const char *ibv_get_device_name(struct ibv_device *device); */
-VMRC_WRAP_SYMVER(ibv_get_device_name, "IBVERBS_1.1", const char*, (struct ibv_device* device), (device))
-
+VMRC_WRAP_SYMVER(ibv_get_device_name, "IBVERBS_1.1", const char*, (struct ibv_device * device), (device))
 
 /* We cannot overwrite qp_ex with shim since ibv_create_qp_ex is a function pointer. */
 struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,

@@ -14,9 +14,13 @@ struct vmrc_symbols_t {
    * IBverbs symbols.
    */
   struct ibv_device **(*ibv_get_device_list_internal)(int *num_devices);
+  void (*ibv_free_device_list_internal)(struct ibv_device **list);
   const char *(*ibv_get_device_name_internal)(struct ibv_device *device);
   struct ibv_context *(*ibv_open_device_internal)(struct ibv_device *device);
   int (*ibv_close_device_internal)(struct ibv_context *context);
+  int (*ibv_get_async_event_internal)(struct ibv_context *context, struct ibv_async_event *event);
+  void (*ibv_ack_async_event_internal)(struct ibv_async_event *event);
+  int (*ibv_query_device_internal)(struct ibv_context *context, struct ibv_device_attr *device_attr);
   struct ibv_qp *(*ibv_create_qp_internal)(struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr);
   struct ibv_cq *(*ibv_create_cq_internal)(struct ibv_context *context, int cqe, void *cq_context,
                                            struct ibv_comp_channel *channel, int comp_vector);

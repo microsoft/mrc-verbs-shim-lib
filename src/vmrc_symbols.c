@@ -12,7 +12,11 @@
 
 #include "include/vmrc_log.h"
 
-#define IBVERBS_VERSION "IBVERBS_1.1"
+#define IBVERBS_VERSION "IBVERBS_1.1"        // For most ibverbs symbols.
+#define IBVERBS_VERSION_1_8 "IBVERBS_1.8"    // For ibv_reg_mr_iova2.
+#define IBVERBS_VERSION_1_12 "IBVERBS_1.12"  // For ibv_reg_dmabuf_mr.
+#define IBVERBS_VERSION_1_10 "IBVERBS_1.10"  // For ibv_query_ece, ibv_set_ece.
+
 #define LOAD_IBVERBS_SYM(handle, symbol, funcptr)                                                   \
   do {                                                                                              \
     void** cast = (void**)&funcptr;                                                                 \
@@ -22,6 +26,17 @@
       goto teardown;                                                                                \
     }                                                                                               \
     *cast = tmp;                                                                                    \
+  } while (0)
+
+#define LOAD_IBVERBS_SYM_VER(handle, symbol, funcptr, version)                              \
+  do {                                                                                      \
+    void** cast = (void**)&funcptr;                                                         \
+    void* tmp = dlvsym(handle, symbol, version);                                            \
+    if (tmp == NULL) {                                                                      \
+      fprintf(stderr, "dlvsym failed on %s - %s version %s\n", symbol, dlerror(), version); \
+      goto teardown;                                                                        \
+    }                                                                                       \
+    *cast = tmp;                                                                            \
   } while (0)
 
 #define LOAD_MRC_SYM(handle, symbol, funcptr)                          \

@@ -10,4 +10,5 @@ tests/*
 
 # Build artifacts
 *.a
-
+*.vscode
+*.swp
