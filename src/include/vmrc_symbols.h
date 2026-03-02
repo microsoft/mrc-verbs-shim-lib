@@ -13,6 +13,7 @@ struct vmrc_symbols_t {
   /*
    * IBverbs symbols.
    */
+  int (*ibv_fork_init_internal)(void);
   struct ibv_device **(*ibv_get_device_list_internal)(int *num_devices);
   void (*ibv_free_device_list_internal)(struct ibv_device **list);
   const char *(*ibv_get_device_name_internal)(struct ibv_device *device);
@@ -21,11 +22,19 @@ struct vmrc_symbols_t {
   int (*ibv_get_async_event_internal)(struct ibv_context *context, struct ibv_async_event *event);
   void (*ibv_ack_async_event_internal)(struct ibv_async_event *event);
   int (*ibv_query_device_internal)(struct ibv_context *context, struct ibv_device_attr *device_attr);
-  struct ibv_qp *(*ibv_create_qp_internal)(struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr);
-  struct ibv_cq *(*ibv_create_cq_internal)(struct ibv_context *context, int cqe, void *cq_context,
-                                           struct ibv_comp_channel *channel, int comp_vector);
+  int (*ibv_query_port_internal)(struct ibv_context *context, uint8_t port_num, struct ibv_port_attr *port_attr);
   int (*ibv_query_gid_internal)(struct ibv_context *context, uint8_t port_num, int index, union ibv_gid *gid);
-
+  struct ibv_pd *(*ibv_alloc_pd_internal)(struct ibv_context *context);
+  int (*ibv_dealloc_pd_internal)(struct ibv_pd *pd);
+  struct ibv_mr *(*ibv_reg_mr_internal)(struct ibv_pd *pd, void *addr, size_t length, int access);
+  struct ibv_mr *(*ibv_reg_mr_iova2_internal)(struct ibv_pd *pd, void *addr, size_t length, uint64_t iova,
+                                              unsigned int access); /* IB_VERBS1.8 */
+  struct ibv_mr *(*ibv_reg_dmabuf_mr_internal)(struct ibv_pd *pd, uint64_t offset, size_t length, uint64_t iova, int fd,
+                                               int access); /* IB_VERBS1.12 */
+  int (*ibv_dereg_mr_internal)(struct ibv_mr *mr);
+  int (*ibv_query_ece_internal)(struct ibv_qp *qp, struct ibv_ece *ece); /* IB_VERBS1.10 */
+  int (*ibv_set_ece_internal)(struct ibv_qp *qp, struct ibv_ece *ece);   /* IB_VERBS1.10 */
+  const char *(*ibv_event_type_str_internal)(enum ibv_event_type event);
   /*
    * MRC symbols.
    */

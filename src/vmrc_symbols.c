@@ -12,20 +12,21 @@
 
 #include "include/vmrc_log.h"
 
-#define IBVERBS_VERSION "IBVERBS_1.1"        // For most ibverbs symbols.
+#define IBVERBS_VERSION_1_1 "IBVERBS_1.1"    // For most ibverbs symbols.
 #define IBVERBS_VERSION_1_8 "IBVERBS_1.8"    // For ibv_reg_mr_iova2.
 #define IBVERBS_VERSION_1_12 "IBVERBS_1.12"  // For ibv_reg_dmabuf_mr.
 #define IBVERBS_VERSION_1_10 "IBVERBS_1.10"  // For ibv_query_ece, ibv_set_ece.
 
-#define LOAD_IBVERBS_SYM(handle, symbol, funcptr)                                                   \
-  do {                                                                                              \
-    void** cast = (void**)&funcptr;                                                                 \
-    void* tmp = dlvsym(handle, symbol, IBVERBS_VERSION);                                            \
-    if (tmp == NULL) {                                                                              \
-      fprintf(stderr, "dlvsym failed on %s - %s version %s\n", symbol, dlerror(), IBVERBS_VERSION); \
-      goto teardown;                                                                                \
-    }                                                                                               \
-    *cast = tmp;                                                                                    \
+/* Loads with version IBVERBS_VERSION_1_1. */
+#define LOAD_IBVERBS_SYM(handle, symbol, funcptr)                                                       \
+  do {                                                                                                  \
+    void** cast = (void**)&funcptr;                                                                     \
+    void* tmp = dlvsym(handle, symbol, IBVERBS_VERSION_1_1);                                            \
+    if (tmp == NULL) {                                                                                  \
+      fprintf(stderr, "dlvsym failed on %s - %s version %s\n", symbol, dlerror(), IBVERBS_VERSION_1_1); \
+      goto teardown;                                                                                    \
+    }                                                                                                   \
+    *cast = tmp;                                                                                        \
   } while (0)
 
 #define LOAD_IBVERBS_SYM_VER(handle, symbol, funcptr, version)                              \
@@ -76,14 +77,28 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
     goto teardown;
   }
 
-  /* For this to work with NCCL, I have to put an interface for all the verbs calls that NCCL uses. */
+  /* Load IBverbs symbols. */
+
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_list", cache->ibv_get_device_list_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_free_device_list", cache->ibv_free_device_list_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_device_name", cache->ibv_get_device_name_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_open_device", cache->ibv_open_device_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_close_device", cache->ibv_close_device_internal);
-  LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_qp", cache->ibv_create_qp_internal);
-  LOAD_IBVERBS_SYM(ibv_handle, "ibv_create_cq", cache->ibv_create_cq_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_get_async_event", cache->ibv_get_async_event_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_ack_async_event", cache->ibv_ack_async_event_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_device", cache->ibv_query_device_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_port", cache->ibv_query_port_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_gid", cache->ibv_query_gid_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_alloc_pd", cache->ibv_alloc_pd_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_dealloc_pd", cache->ibv_dealloc_pd_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_reg_mr", cache->ibv_reg_mr_internal);
+  LOAD_IBVERBS_SYM_VER(ibv_handle, "ibv_reg_mr_iova2", cache->ibv_reg_mr_iova2_internal, "IBVERBS_1.8");
+  LOAD_IBVERBS_SYM_VER(ibv_handle, "ibv_reg_dmabuf_mr", cache->ibv_reg_dmabuf_mr_internal, "IBVERBS_1.12");
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_dereg_mr", cache->ibv_dereg_mr_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_fork_init", cache->ibv_fork_init_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_event_type_str", cache->ibv_event_type_str_internal);
+  LOAD_IBVERBS_SYM_VER(ibv_handle, "ibv_query_ece", cache->ibv_query_ece_internal, "IBVERBS_1.10");
+  LOAD_IBVERBS_SYM_VER(ibv_handle, "ibv_set_ece", cache->ibv_set_ece_internal, "IBVERBS_1.10");
 
   /* Load MRC symbols. */
 
