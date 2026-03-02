@@ -29,12 +29,49 @@
     return symbols->name##_internal args;                       \
   }
 
-/* Define all the usual symbols. */
-/* struct ibv_device **ibv_get_device_list(int *num_devices); */
-/* To do: Double check on the IBVERBS_1.1 versioining ... */
+/* Pass through IBverbs symbols. */
+VMRC_WRAP_SYMVER(ibv_fork_init, "IBVERBS_1.1", int, (void), ())
 VMRC_WRAP_SYMVER(ibv_get_device_list, "IBVERBS_1.1", struct ibv_device**, (int* num_devices), (num_devices))
-/* const char *ibv_get_device_name(struct ibv_device *device); */
+VMRC_WRAP_SYMVER(ibv_free_device_list, "IBVERBS_1.1", void, (struct ibv_device * *list), (list))
 VMRC_WRAP_SYMVER(ibv_get_device_name, "IBVERBS_1.1", const char*, (struct ibv_device * device), (device))
+VMRC_WRAP_SYMVER(ibv_get_async_event, "IBVERBS_1.1", int, (struct ibv_context * context, struct ibv_async_event* event),
+                 (context, event))
+VMRC_WRAP_SYMVER(ibv_ack_async_event, "IBVERBS_1.1", void, (struct ibv_async_event * event), (event))
+VMRC_WRAP_SYMVER(ibv_query_device, "IBVERBS_1.1", int,
+                 (struct ibv_context * context, struct ibv_device_attr* device_attr), (context, device_attr))
+#undef ibv_query_port  // Undefine the macro and redefine after instantiating pass through for ibv_query_port.
+VMRC_WRAP_SYMVER(ibv_query_port, "IBVERBS_1.1", int,
+                 (struct ibv_context * context, uint8_t port_num, struct ibv_port_attr* port_attr),
+                 (context, port_num, port_attr))
+#define ibv_query_port(context, port_num, port_attr) ___ibv_query_port(context, port_num, port_attr)
+VMRC_WRAP_SYMVER(ibv_query_gid, "IBVERBS_1.1", int,
+                 (struct ibv_context * context, uint8_t port_num, int index, union ibv_gid* gid),
+                 (context, port_num, index, gid))
+VMRC_WRAP_SYMVER(ibv_alloc_pd, "IBVERBS_1.1", struct ibv_pd*, (struct ibv_context * context), (context))
+VMRC_WRAP_SYMVER(ibv_dealloc_pd, "IBVERBS_1.1", int, (struct ibv_pd * pd), (pd))
+#undef ibv_reg_mr  // Undefine the macro and redefine after instantiating pass through for ibv_reg_mr.
+VMRC_WRAP_SYMVER(ibv_reg_mr, "IBVERBS_1.1", struct ibv_mr*, (struct ibv_pd * pd, void* addr, size_t length, int access),
+                 (pd, addr, length, access))
+#define ibv_reg_mr(pd, addr, length, access) \
+  __ibv_reg_mr(pd, addr, length, access, __builtin_constant_p(((int)(access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
+VMRC_WRAP_SYMVER(ibv_reg_mr_iova2, "IBVERBS_1.8", struct ibv_mr*,
+                 (struct ibv_pd * pd, void* addr, size_t length, uint64_t iova, unsigned int access),
+                 (pd, addr, length, iova, access))
+VMRC_WRAP_SYMVER(ibv_reg_dmabuf_mr, "IBVERBS_1.12", struct ibv_mr*,
+                 (struct ibv_pd * pd, uint64_t offset, size_t length, uint64_t iova, int fd, int access),
+                 (pd, offset, length, iova, fd, access))
+VMRC_WRAP_SYMVER(ibv_dereg_mr, "IBVERBS_1.1", int, (struct ibv_mr * mr), (mr))
+
+/* Print info to not use the verb and exit. */
+#define VMRC_WRAP_SYMVER_ERR(name, ver, rettype, params, args)                                           \
+  __asm__(".symver ovwrt_" #name ", " #name "@@" ver);                                                   \
+  VMRC_DEF_VIS rettype ovwrt_##name params {                                                             \
+    VMRC_CHECK_PRINT_EXIT(NULL, 1, #name " cannot be used with verbs-mrc");                              \
+    return 1; /* To satisfy the compiler. This line will never be reached since the above line exits. */ \
+  }
+
+VMRC_WRAP_SYMVER_ERR(ibv_query_ece, "IBVERBS_1.10", int, (struct ibv_qp * qp, struct ibv_ece* ece), (qp, ece))
+VMRC_WRAP_SYMVER_ERR(ibv_set_ece, "IBVERBS_1.10", int, (struct ibv_qp * qp, struct ibv_ece* ece), (qp, ece))
 
 /* We cannot overwrite qp_ex with shim since ibv_create_qp_ex is a function pointer. */
 struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,
