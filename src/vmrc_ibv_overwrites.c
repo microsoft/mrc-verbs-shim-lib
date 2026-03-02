@@ -116,8 +116,8 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
     return verbs_context;
   }
   if (!mrc_supported) {
-    VMRC_INFO_PRINT_VA_ARGS("MRC not supported. mrc_supported = %d for dev = %s. Returning verbs context.",
-                            mrc_supported, symbols->ibv_get_device_name_internal(device));
+    VMRC_DEBUG_PRINT_VA_ARGS("MRC not supported for dev = %s. Returning verbs context.",
+                            symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
 
