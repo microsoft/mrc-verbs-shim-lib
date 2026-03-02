@@ -61,8 +61,7 @@ VMRC_WRAP_SYMVER(ibv_reg_dmabuf_mr, "IBVERBS_1.12", struct ibv_mr*,
                  (struct ibv_pd * pd, uint64_t offset, size_t length, uint64_t iova, int fd, int access),
                  (pd, offset, length, iova, fd, access))
 VMRC_WRAP_SYMVER(ibv_dereg_mr, "IBVERBS_1.1", int, (struct ibv_mr * mr), (mr))
-VMRC_WRAP_SYMVER(ibv_event_type_str, "IBVERBS_1.1", const char*,
-                 (enum ibv_event_type event), (event))
+VMRC_WRAP_SYMVER(ibv_event_type_str, "IBVERBS_1.1", const char*, (enum ibv_event_type event), (event))
 
 /* Print info to not use the verb and exit. */
 #define VMRC_WRAP_SYMVER_ERR(name, ver, rettype, params, args)                                           \
@@ -117,7 +116,7 @@ VMRC_DEF_VIS struct ibv_context* ovwrt_ibv_open_device(struct ibv_device* device
   }
   if (!mrc_supported) {
     VMRC_DEBUG_PRINT_VA_ARGS("MRC not supported for dev = %s. Returning verbs context.",
-                            symbols->ibv_get_device_name_internal(device));
+                             symbols->ibv_get_device_name_internal(device));
     return verbs_context;
   }
 
