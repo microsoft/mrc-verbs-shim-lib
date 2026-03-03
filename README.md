@@ -24,9 +24,22 @@ MRC_H_PATH=<Path to folder containing mrc.h> ./build-verbs-mrc.sh
 
 This will have created the `libibverbs.so` library in the parent directory. This library consists of overwrites for several of verbs symbols.
 
+To quickly check if the shim library works, run:
+
+```bash
+./run-verbs-mrc.sh
+```
+
+
 # Running with verbs-mrc
 
-To run your verbs application or CCL with the shim layer, export the below variables.
+To run your application or CCL with the shim library, 
+- Export a few variables (see below subsection)
+- Run your app by:
+  1. Adding `LD_PRELOAD=<Absolute path of shim library's libibverbs.so>` prefix to your app (see IBverbs example below), or
+  2. Adding the path of folder containing shim library's `libibverbs.so` to `LD_LIBRARY_PATH` (see NCCL example below).
+
+## Variables to export
 
 ```bash
 export MRC_LIB_PATH=<path to folder containing .so files to resolve vendor libmrc.so symbols>
@@ -35,15 +48,6 @@ export LD_LIBRARY_PATH=$MRC_LIB_PATH:$LD_LIBRARY_PATH # Needed to resolve locati
 # Please put absolute paths here.
 export VMRC_LIBMRC_SO=<full path to vendor libmrc.so>
 export VMRC_LIBIBVERBS_SO=<full path to vendor libibverbs.so.1>
-```
-
-Then, you can 
-- `LD_PRELOAD` the shim library's `libibverbs.so` if your verbs application only calls RDMA
-- 
-
-To quickly check if the shim library works, run:
-
-```bash
 ```
 
 # Using with CCLs and perftest
