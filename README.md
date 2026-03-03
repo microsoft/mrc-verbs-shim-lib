@@ -1,18 +1,72 @@
 # Introduction
 
-verbs-mrc is a collection of verbs function overwrites that enable MRC capabilities with verbs application that uses `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` ops. Primary applications that will use this include the vanilla ibverbs perftests and NCCL.
+Verbs-MRC shim library is a light-weight ilbrary that enables existing verbs applications and AI communication library, such as NCCL, to use the new MRC transport with no code changes or any noticeable performance penalty. Specifically, it enables any verbs application that uses `RDMA_WRITE` and/or `RDMA_WRITE_WITH_IMM` to immediately take advantage of libmrc with almost no code changes. The usual ibverbs function symbols are overwritten by the function symbols in the shim layer library either by preloading the library or by dynamically loading the symbol at runtime. The shim layer functions translate the necessary verbs function calls to their equivalent MRC function calls.
+
+This can be used to quickly test your existing verbs application with MRC without any involved CCL-level changes.
+
+# Requirements
+
+Verbs application should:
+
+- Not use `_ex` APIs. For e.g., `ibv_crate_cq_ex` and `ibv_create_qp_ex`.
+- Not use WR APIs.
+- Only use `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` ops.
+
+Note that NCCL satisfies these constraints and hence can be used with the shim layer.
 
 # Building verbs-mrc
 
-To build verbs MRC, simply execute 
+To build mrc-verbs shim library, simply execute:
 
 ```bash
-./build-verbs-mrc.sh
+MRC_H_PATH=<Path to folder containing mrc.h> ./build-verbs-mrc.sh
 ```
 
-in the parent directory.
+This will have created the `libibverbs.so` library in the parent directory. This library consists of overwrites for several of verbs symbols.
 
-# Building ibverbs perftest and NCCL
+# Running with verbs-mrc
+
+To run your verbs application or CCL with the shim layer, export the below variables.
+
+```bash
+export MRC_LIB_PATH=<path to folder containing .so files to resolve vendor libmrc.so symbols>
+export LD_LIBRARY_PATH=$MRC_LIB_PATH:$LD_LIBRARY_PATH # Needed to resolve locations of doca libraries that libnv_mrc.so depends on.
+
+# Please put absolute paths here.
+export VMRC_LIBMRC_SO=<full path to vendor libmrc.so>
+export VMRC_LIBIBVERBS_SO=<full path to vendor libibverbs.so.1>
+```
+
+Then, you can 
+- `LD_PRELOAD` the shim library's `libibverbs.so` if your verbs application only calls RDMA
+- 
+
+To quickly check if the shim library works, run:
+
+```bash
+```
+
+# Using with CCLs and perftest
+
+## NCCL
+
+Clone the repo:
+```bash
+git clone https://github.com/NVIDIA/nccl.git
+git checkout <version>
+make -j build
+cp <mrc-verbs-shim-lib>/libibverbs.so .
+TODO: give a NCCL sendrecv run script with the shim layer.
+```
+
+## IBverbs perftest
+
+Perftest, by default, 
+- uses `ibv_create_cq_ex` API to create completion queues, and
+- enables Work Request (WR) APIs.
+
+WR APIs can be disabled via `--disable-ibv_wr_api`. However, to disable using `ibv_create_cq_ex` and instead use `ibv_create_cq`, This has to be changed. There is another bug that does not allow perftest to compile with `--disable-ibv_wr_api`. Both these issues are addresed in the open PR (TODO). So, please clone this fork until the PR is merged.
+
 
 ## ibverbs perftest
 
