@@ -6,7 +6,10 @@ src/*.o
 
 # All test executables.
 tests/*
-!tests/*.c
+!tests/perftest
+!tests/nccl
+!tests/perftest/*.sh
+!tests/nccl/*.sh
 
 # Build artifacts
 *.a
