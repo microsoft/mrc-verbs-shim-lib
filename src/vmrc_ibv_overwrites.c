@@ -11,7 +11,6 @@
 #include <string.h>
 
 #include "include/vmrc_ht.h"
-#include "include/vmrc_json.h"
 #include "include/vmrc_log.h"
 #include "include/vmrc_symbols.h"
 #include "mrc.h"

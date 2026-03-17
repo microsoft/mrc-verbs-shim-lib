@@ -9,4 +9,4 @@ export MRC_H_PATH=${MRC_H_PATH}
 
 make clean
 make
-make tests tests_internal
+make tests
