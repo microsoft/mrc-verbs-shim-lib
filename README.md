@@ -43,7 +43,9 @@ To clone and build NCCL and NCCL-tests, run:
 cd tests/nccl
 ./build-script.sh
 ```
-This clones a fork
+This clones a fork of NCCL that includes a feature which allows the user to provide the full path of libibverbs.so to use in `dlopen` via `NCCL_LIBIBVERBS_SO`. This submitted as a [PR](https://github.com/NVIDIA/nccl/pull/2043) to NCCL repo.
+
+To run NCCL with shim using just the backend communication, use the `run-script.sh` in `tests/nccl`.
 
 # Incorporating mrc-verbs-shim-lib with your CCL/application
 
