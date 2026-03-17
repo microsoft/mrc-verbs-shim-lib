@@ -2,13 +2,9 @@
 
 # This test runs a sanity check with the LD_PRELOAD way of using the shim library.
 
-print_usage() {
-    echo "Usage: $0 <mrc so parent dir> [mrc so name (default: libmrc.so)]"
-}
-
 arch=$(uname -m)
-MRC_LIB_DIR=${1:?$(print_usage)}
-MRC_LIB_SO=${2:-"libmrc.so"}
+MRC_LIB_DIR=${MRC_LIB_DIR:?"Error: MRC_LIB_DIR is not set"}
+MRC_LIB_SO=${MRC_LIB_SO:-"libmrc.so"}
 
 # Export for the shim layer.
 export VMRC_LIBMRC_SO=${VMRC_LIBMRC_SO:-"$MRC_LIB_DIR/$MRC_LIB_SO"}
