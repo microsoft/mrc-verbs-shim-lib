@@ -33,6 +33,12 @@ export VMRC_LIBIBVERBS_SO=/lib/${arch}-linux-gnu/libibverbs.so.1
 # Recent verbs-mrc shim layer branch include-other-verbs-calls
 export NCCL_LIBIBVERBS_SO=$(realpath $PWD/../../../libibverbs.so)
 
+# Check if NCCL_LIBIBVERBS_SO exists (atleast on the trigger node)
+if [ ! -f "$NCCL_LIBIBVERBS_SO" ]; then
+    echo "Error: NCCL_LIBIBVERBS_SO not found at $NCCL_LIBIBVERBS_SO"
+    exit 1
+fi
+
 FE_NETDEV=enP22p1s0f1 # This is the MANA NIC netdev name.
 
 COLL=$(realpath $PWD/build/${BENCH}_perf)
