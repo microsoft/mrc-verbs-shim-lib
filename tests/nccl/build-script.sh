@@ -8,7 +8,7 @@ rm -rf nccl-tests
 # We have a PR and an issue open for some features in NCCL.
 # PR: https://github.com/NVIDIA/nccl/pull/2043
 # Issue: https://github.com/NVIDIA/nccl/issues/2048
-git clone --branch anantharamus/gdrcopy-aarch64-user-libibverbs git@github.com:SreevatsaAnantharamu/nccl.git
+git clone --branch anantharamus/gdrcopy-v2-dlopen git@github.com:SreevatsaAnantharamu/nccl.git
 git clone --branch v2.18.2 https://github.com/NVIDIA/nccl-tests.git
 
 pushd nccl
@@ -22,3 +22,5 @@ NCCL_HOME=$(realpath $PWD/../nccl/build/)
 LD_LIBRARY_PATH=$NCCL_HOME/lib:$LD_LIBRARY_PATH
 make -j VERBOSE=1 MPI=1 MPI_HOME=$MPI_HOME NCCL_HOME=$NCCL_HOME
 popd
+
+cp run-script.sh nccl-tests
