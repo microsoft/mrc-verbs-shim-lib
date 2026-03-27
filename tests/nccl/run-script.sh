@@ -83,7 +83,7 @@ NCCL_ENV="
   -x NCCL_GDRCOPY_SYNC_ENABLE=1 \
   -x NCCL_IB_QPS_PER_CONNECTION=2 \
   -x NCCL_IB_SPLIT_DATA_ON_QPS=1 \
-  -x NCCL_IB_TC=$((1 << 2)) -x NCCL_IB_FIFO_TC=$((3 << 2))
+  -x NCCL_IB_TC=$((1 << 2)) -x NCCL_IB_FIFO_TC=$((3 << 2))"
 
 if [ "$PPN" -eq 4 ]; then
        NCCL_ENV+=" -x NCCL_TESTS_SPLIT_MASK=0x3"
