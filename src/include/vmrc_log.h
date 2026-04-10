@@ -11,7 +11,7 @@
   do {                                           \
     if (!(val)) {                                \
       fprintf(stderr,                            \
-              "verbs-mrc: error: " msg           \
+              "mrc-verbs-shim-lib: error: " msg  \
               " (%s:%d)"                         \
               "\n",                              \
               __FILE__, __LINE__);               \
@@ -23,7 +23,7 @@
   do {                                                        \
     if (!(val)) {                                             \
       fprintf(stderr,                                         \
-              "verbs-mrc: error: " msg                        \
+              "mrc-verbs-shim-lib: error: " msg               \
               " (%s:%d)"                                      \
               "\n",                                           \
               __VA_ARGS__, __FILE__, __LINE__);               \
@@ -41,8 +41,8 @@
 /* Debug prints. */
 #ifdef VMRC_DEBUG
 
-#define VMRC_DEBUG_PRINT(msg) fprintf(stderr, "verbs-mrc: debug: " msg "\n");
-#define VMRC_DEBUG_PRINT_VA_ARGS(msg, ...) fprintf(stderr, "verbs-mrc: debug: " msg "\n", __VA_ARGS__);
+#define VMRC_DEBUG_PRINT(msg) fprintf(stderr, "mrc-verbs-shim-lib: debug: " msg "\n");
+#define VMRC_DEBUG_PRINT_VA_ARGS(msg, ...) fprintf(stderr, "mrc-verbs-shim-lib: debug: " msg "\n", __VA_ARGS__);
 
 #else /* #ifdef VMRC_DEBUG */
 
@@ -51,7 +51,7 @@
 
 #endif /* #ifdef VMRC_DEBUG */
 
-#define VMRC_INFO_PRINT(msg) fprintf(stderr, "verbs-mrc: info: " msg "\n");
-#define VMRC_INFO_PRINT_VA_ARGS(msg, ...) fprintf(stderr, "verbs-mrc: info: " msg "\n", __VA_ARGS__);
+#define VMRC_INFO_PRINT(msg) fprintf(stderr, "mrc-verbs-shim-lib: info: " msg "\n");
+#define VMRC_INFO_PRINT_VA_ARGS(msg, ...) fprintf(stderr, "mrc-verbs-shim-lib: info: " msg "\n", __VA_ARGS__);
 
 #endif /* #ifndef _VMRC_LOG_H_ */

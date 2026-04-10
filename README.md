@@ -1,6 +1,6 @@
 # Introduction
 
-The verbs-mrc-shim library is a very thin library that enables existing libibverbs applications and AI communication libraries (such as NCCL/RCCL) to use the new Multipath Reliable Connection (MRC) transport with no code changes and no noticeable performance penalty. RDMA OPs supported by the shim are same as the ones supported by MRC, i.e.,  `RDMA_WRITE` and/or `RDMA_WRITE_WITH_IMM`. 
+The verbs-mrc-shim library is a lightweight library that enables existing libibverbs applications and AI communication libraries (such as NCCL/RCCL) to use the new Multipath Reliable Connection (MRC) transport with no code changes and no performance penalty. RDMA OPs supported by the shim are same as the ones supported by MRC, i.e.,  `RDMA_WRITE` and/or `RDMA_WRITE_WITH_IMM`. 
 
 Specifically, the shim  provides overwrites for common libibverbs symbols used by communication libraries. The overwritten functions internally create and manage MRC-related resources and take care of translating libibverbs API calls to MRC API calls. The user experience will be as though they were calling the common libibverbs APIs.
 

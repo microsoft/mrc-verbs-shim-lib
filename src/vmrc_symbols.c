@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "include/vmrc_log.h"
+#include "include/vmrc_version.h"
 
 #define IBVERBS_VERSION_1_1 "IBVERBS_1.1"    // For most ibverbs symbols.
 #define IBVERBS_VERSION_1_8 "IBVERBS_1.8"    // For ibv_reg_mr_iova2.
@@ -60,9 +61,11 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
 
   cache = (struct vmrc_symbols_t*)calloc(1, sizeof(struct vmrc_symbols_t));
   if (cache == NULL) {
-    fprintf(stderr, "verbs-mrc: Allocating (struct vmrc_symbols_t) failed\n");
+    fprintf(stderr, "Allocating (struct vmrc_symbols_t) failed\n");
     goto teardown;
   }
+
+  VMRC_DEBUG_PRINT("version %d.%d.%d", VMRC_VERSION_MAJOR, VMRC_VERSION_MINOR, VMRC_VERSION_PATCH);
 
   VMRC_DEBUG_PRINT("Loading ibv symbols from libibverbs.so");
 
