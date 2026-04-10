@@ -22,7 +22,7 @@ This will create the `libibverbs.so` library in the parent directory. This libra
 
 To quickly check if the shim library works, run:
 ```bash
-MRC_LIB_DIR=<folder containing paths to libraries that libmrc.so> MRC_LIB_SO=<vendor libmrc.so> ./check_sanity.sh
+MRC_LIB_DIR=<folder containing libmrc.so and dependencies> MRC_LIB_SO=<vendor libmrc.so> ./check_sanity.sh
 ```
 You should see the list of all RDMA devices on the node. The `ibv_open_device_list` call is intercepted by the shim library.
 
