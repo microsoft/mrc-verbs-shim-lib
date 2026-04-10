@@ -31,7 +31,7 @@ export VMRC_LIBMRC_SO=/opt/mellanox/doca/lib/${arch}-linux-gnu/libnv_mrc.so
 export VMRC_LIBIBVERBS_SO=/lib/${arch}-linux-gnu/libibverbs.so.1
 
 # Recent verbs-mrc shim layer branch include-other-verbs-calls
-export NCCL_IBVERBS_LIB=$(realpath $PWD/../../../libibverbs.so)
+export NCCL_IBVERBS_LIB=$(realpath $PWD/../../../build/lib/libibverbs.so)
 
 # Check if NCCL_IBVERBS_LIB exists (atleast on the trigger node)
 if [ ! -f "$NCCL_IBVERBS_LIB" ]; then

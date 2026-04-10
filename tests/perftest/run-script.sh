@@ -10,7 +10,7 @@ export VMRC_LIBIBVERBS_SO=${VMRC_LIBIBVERBS_SO:-"/lib/${arch}-linux-gnu/libibver
 export LD_LIBRARY_PATH=$MRC_LIB_DIR:$LD_LIBRARY_PATH # Needed to resolve locations during dlopen.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHIM_LIB_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SHIM_LIB_DIR="$(cd "$SCRIPT_DIR/../../build/lib" && pwd)"
 
 set -x
 
