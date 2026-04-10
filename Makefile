@@ -35,23 +35,23 @@ TARGETS := $(LIBDIR)/libibverbs.so $(LIBDIR)/debug/libibverbs_debug.so
 all: $(TARGETS)
 
 $(LIBDIR)/libibverbs.so: $(OBJECTS)
-	printf "Linking %-35s > %s\n" $^ $@
-	mkdir -p `dirname $@`
+	@printf "Linking %s\n" $@
+	@mkdir -p `dirname $@`
 	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
 $(LIBDIR)/debug/libibverbs_debug.so: $(DEBUG_OBJECTS)
-	printf "Linking debug %-35s > %s\n" $^ $@
-	mkdir -p `dirname $@`
+	@printf "Linking %s\n" $@
+	@mkdir -p `dirname $@`
 	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
 $(OBJECTS): $(OBJDIR)/%.o: src/%.c $(HEADERS)
-	printf "Compiling %-35s > %s\n" $< $@
-	mkdir -p `dirname $@`
+	@printf "Compiling %-35s > %s\n" $< $@
+	@mkdir -p `dirname $@`
 	$(CC) -c $(CFLAGS) -fvisibility=hidden $< -o $@
 
 $(DEBUG_OBJECTS): $(OBJDIR)/%_debug.o: src/%.c $(HEADERS)
-	printf "Compiling debug %-35s > %s\n" $< $@
-	mkdir -p `dirname $@`
+	@printf "Compiling debug %-35s > %s\n" $< $@
+	@mkdir -p `dirname $@`
 	$(CC) -c $(CFLAGS) -DVMRC_DEBUG -fvisibility=hidden $< -o $@
 
 TESTS=tests/check_sanity.c
