@@ -52,7 +52,7 @@ To clone and build NCCL and NCCL-tests, run:
 cd tests/nccl
 ./build-script.sh
 ```
-This will build v2.30 branch of NCCL. This version of NCCL supports the user to provide an absolute path of libibverbs.so to use in `dlopen` via `NCCL_IBVERBS_LIB`. The absolute path of the shim library should be provided with this. Please take a look at `run-script.sh` in `tests/nccl`.
+This will build [v2.30](https://github.com/NVIDIA/nccl/tree/v2.30) branch of NCCL. This version of NCCL supports the user to provide an absolute path of `libibverbs.so` to use in `dlopen` via `NCCL_IBVERBS_LIB`. The absolute path of the shim library should be provided with this env var. Please take a look at `run-script.sh` in `tests/nccl`.
 
 To run NCCL with shim using just the MRC backend,
 ```
@@ -69,7 +69,7 @@ Your CCL/app should:
 
 - Not use `_ex` APIs. For e.g., `ibv_crate_cq_ex` and `ibv_create_qp_ex`.
 - Not use WR APIs and instead use `ibv_post_send` and `ibv_post_recv`.
-- Only use `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` ops.
+- Only use `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` RDMA ops. `RDMA_READ` and `RDMA_SEND` is not supported.
 
 ## Environment variables
 
