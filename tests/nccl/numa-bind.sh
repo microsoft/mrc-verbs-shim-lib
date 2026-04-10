@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Example usage: ./numa_bind.sh --cpu_bind_range 0-35,36-71,72-107,108-143 --mem_bind 0,0,1,1 $COLL $COLL_ARGS
+# Example usage: ./numa-bind.sh --cpu_bind_range 0-35,36-71,72-107,108-143 --mem_bind 0,0,1,1 $COLL $COLL_ARGS
 
 # Parse command line arguments for CPU and memory binding.
 while [[ $# -gt 0 ]]; do
