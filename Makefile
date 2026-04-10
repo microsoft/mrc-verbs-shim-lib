@@ -1,6 +1,5 @@
 CC = gcc
 CFLAGS += -fPIC
-DEBUG ?= 0
 MKFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # Check MRC_H_PATH only if target is not format, lint, or clean
@@ -12,11 +11,7 @@ endif
 
 $(info MRC_H_PATH set to $(MRC_H_PATH))
 
-CFLAGS := -I$(MRC_H_PATH) $(CFLAGS)
-
-ifneq ($(DEBUG),0)
-CFLAGS += -g -DVMRC_DEBUG # No indentation is crucial here.
-endif
+CFLAGS += -I$(MRC_H_PATH) -g
 
 SRCS=src/vmrc_symbols.c \
 	src/vmrc_ibv_overwrites.c \
@@ -27,16 +22,23 @@ HEADERS=src/include/vmrc_symbols.h \
 	src/include/vmrc_log.h
 
 OBJECTS=$(SRCS:.c=.o)
+DEBUG_OBJECTS=$(SRCS:.c=_debug.o)
 
-TARGETS=libibverbs.so
+TARGETS=libibverbs.so libibverbs_debug.so
 
 all: $(TARGETS)
 
 libibverbs.so: $(OBJECTS)
 	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
 
+libibverbs_debug.so: $(DEBUG_OBJECTS)
+	$(CC) -fPIC -shared -o $@ $^ $(LDFLAGS) -Wl,--version-script=version_script.map
+
 $(OBJECTS): %.o: %.c $(HEADERS)
 	$(CC) -c $(CFLAGS) -fvisibility=hidden $< -o $@
+
+$(DEBUG_OBJECTS): %_debug.o: %.c $(HEADERS)
+	$(CC) -c $(CFLAGS) -DVMRC_DEBUG -fvisibility=hidden $< -o $@
 
 TESTS=tests/check_sanity.c
 
@@ -52,7 +54,7 @@ $(TESTS_OBJ): %: %.c libibverbs.so
 FORMAT_SOURCES=$(SRCS) $(HEADERS) $(TESTS)
 
 .PHONY: format
-format:
+format: 
 	clang-format --verbose -i $(FORMAT_SOURCES)
 
 .PHONY: lint
@@ -64,4 +66,4 @@ clean:
 	rm -f $(TARGETS)
 	rm -f $(OBJECTS)
 	rm -f $(TESTS_OBJ)
-
+	rm -f $(DEBUG_OBJECTS)

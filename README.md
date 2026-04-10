@@ -22,7 +22,7 @@ This will create the `libibverbs.so` library in the parent directory. This libra
 
 To quickly check if the shim library works, run:
 ```bash
-./check_sanity.sh
+MRC_LIB_DIR=<folder containing paths to libraries that libmrc.so> MRC_LIB_SO=<vendor libmrc.so> ./check_sanity.sh
 ```
 You should see the list of all RDMA devices on the node. The `ibv_open_device_list` call is intercepted by the shim library.
 
@@ -87,8 +87,8 @@ export LD_LIBRARY_PATH=$MRC_LIB_PATH:$LD_LIBRARY_PATH
 To use MRC over shim library with your application,
 - Export the above variables
 
-- If your CCL/app, compiles against rdma-core (for e.g., perftest) and satisfies the above requirements, then `LD_PRELOAD` the shim library and run your application as:
+- If your CCL/app compiles against rdma-core (for e.g., perftest) and satisfies the above requirements, then `LD_PRELOAD` the shim library and run your application as:
 ```
 LD_PRELOAD=<Absolute path of shim library's libibverbs.so> <your app/ccl>
 ```
-- If your CCL/app, loads `libibverbs.so` at runtime (for e.g., NCCL), then `dlopen` the shim library's `libibverbs.so` instead of the usual `libibverbs.so` library.
+- If your CCL/app loads `libibverbs.so` at runtime (for e.g., NCCL), then `dlopen` the shim library's `libibverbs.so` instead of the usual `libibverbs.so` library.
