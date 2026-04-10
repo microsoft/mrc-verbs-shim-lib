@@ -65,7 +65,7 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
     goto teardown;
   }
 
-  VMRC_DEBUG_PRINT("version %d.%d.%d", VMRC_VERSION_MAJOR, VMRC_VERSION_MINOR, VMRC_VERSION_PATCH);
+  VMRC_DEBUG_PRINT_VA_ARGS("version %d.%d.%d", VMRC_VERSION_MAJOR, VMRC_VERSION_MINOR, VMRC_VERSION_PATCH);
 
   VMRC_DEBUG_PRINT("Loading ibv symbols from libibverbs.so");
 
