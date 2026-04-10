@@ -31,11 +31,11 @@ export VMRC_LIBMRC_SO=/opt/mellanox/doca/lib/${arch}-linux-gnu/libnv_mrc.so
 export VMRC_LIBIBVERBS_SO=/lib/${arch}-linux-gnu/libibverbs.so.1
 
 # Recent verbs-mrc shim layer branch include-other-verbs-calls
-export NCCL_LIBIBVERBS_SO=$(realpath $PWD/../../../libibverbs.so)
+export NCCL_IBVERBS_LIB=$(realpath $PWD/../../../libibverbs.so)
 
-# Check if NCCL_LIBIBVERBS_SO exists (atleast on the trigger node)
-if [ ! -f "$NCCL_LIBIBVERBS_SO" ]; then
-    echo "Error: NCCL_LIBIBVERBS_SO not found at $NCCL_LIBIBVERBS_SO"
+# Check if NCCL_IBVERBS_LIB exists (atleast on the trigger node)
+if [ ! -f "$NCCL_IBVERBS_LIB" ]; then
+    echo "Error: NCCL_IBVERBS_LIB not found at $NCCL_IBVERBS_LIB. Please check the path and ensure that the library exists. Exiting."
     exit 1
 fi
 
@@ -56,18 +56,17 @@ NCCL_ENV="
   -mca plm_rsh_no_tree_spawn 1 -mca plm_rsh_num_concurrent 8192 \
   --map-by ppr:$PPN:node --bind-to none \
   --hostfile $HOSTFILE \
-   -x UCX_TLS=tcp \
   -x LD_LIBRARY_PATH \
   -x VMRC_LIBMRC_SO=/opt/mellanox/doca/lib/aarch64-linux-gnu/libnv_mrc.so \
   -x VMRC_LIBIBVERBS_SO=/lib/aarch64-linux-gnu/libibverbs.so.1 \
-  -x NCCL_LIBIBVERBS_SO=$NCCL_LIBIBVERBS_SO \
-  -mca coll_hcoll_enable 0 \
-  --mca btl tcp,vader,self \
+  -x NCCL_IBVERBS_LIB=$NCCL_IBVERBS_LIB \
   --mca pml ob1 \
+  --mca btl vader,self,tcp \
   --mca btl_tcp_if_include enP22p1s0f1 \
-  -x UCX_NET_DEVICES=enP22p1s0f1 \
+  --mca coll ^hcoll,ucc,xhc \
   -x NCCL_SOCKET_IFNAME=enP22p1s0f1 \
   -x NCCL_NET_PLUGIN=none \
+  -x NCCL_TUNER_PLUGIN=none \
   -x NCCL_IB_DISABLE=0 \
   -x NCCL_SHM_DISABLE=1 \
   -x NCCL_P2P_DISABLE=1 \
@@ -99,7 +98,7 @@ fi
 if [ "$DEBUG" -eq 0 ]; then
         NCCL_ENV+=" -x NCCL_DEBUG=WARN"
 else
-        NCCL_ENV+=" -x NCCL_DEBUG=TRACE -x NCCL_DEBUG_SUBSYS=ALL"
+        NCCL_ENV+=" -x NCCL_DEBUG=INFO"
 fi
 
 set -x
@@ -107,5 +106,5 @@ date
 echo "mpirun -np $((NUM_NODES*PPN)) $NCCL_ENV $COLL $COLL_ARGS"
 mpirun -np $((NUM_NODES*PPN)) \
         $NCCL_ENV \
-        $COLL $COLL_ARGS
+        ./numa-bind.sh --cpu_bind_range 0-35,36-71,72-107,108-143 --mem_bind 0,0,1,1 $COLL $COLL_ARGS
 set +x
