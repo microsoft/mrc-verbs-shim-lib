@@ -18,13 +18,13 @@ To build the mrc-verbs-shim library, simply execute:
 MRC_H_PATH=<Path to folder containing mrc.h> ./build-verbs-mrc.sh
 ```
 
-This will create the `libibverbs.so` library in the parent directory. This library consists of overwrites for several of libibverbs symbols. For a list of symbols it overwrites, please run `objdump -T libibverbs.so`.
+This will create the the shim layer's `libibverbs.so` library in `build/lib`. This library consists of overwrites for several of libibverbs symbols. For a list of symbols it overwrites, please run `objdump -T build/lib/libibverbs.so`.
 
 To quickly check if the shim library works, run:
 ```bash
 MRC_LIB_DIR=<folder containing libmrc.so and dependencies> MRC_LIB_SO=<vendor libmrc.so> ./check_sanity.sh
 ```
-You should see the list of all RDMA devices on the node. The `ibv_open_device_list` call is intercepted by the shim library.
+You should see the list of all RDMA devices on the node. The `ibv_open_device_list` call is intercepted by the shim library. It will also list the version of the installed shim layer library at the top.
 
 # Tests
 
