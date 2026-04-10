@@ -5,8 +5,6 @@ set -x
 rm -rf nccl
 rm -rf nccl-tests
 
-# We have a PR and an issue open for some features in NCCL.
-# PR: https://github.com/NVIDIA/nccl/pull/2043
 git clone --branch v2.30 https://github.com/NVIDIA/nccl.git
 git clone --branch v2.18.2 https://github.com/NVIDIA/nccl-tests.git
 
