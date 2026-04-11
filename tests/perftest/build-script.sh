@@ -2,7 +2,7 @@
 
 rm -rf perftest
 
-git clone https://github.com/linux-rdma/perftest.git
+git clone -b anantharamus/null-sge-wimm git@github.com:SreevatsaAnantharamu/perftest.git
 
 cd perftest
 
