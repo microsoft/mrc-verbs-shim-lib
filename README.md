@@ -37,7 +37,7 @@ To [rdma-perftest](https://github.com/linux-rdma/perftest) over the shim library
 cd tests/perftest
 ./build-script.sh
 ```
-This will build perftest with `--disable-ibv_wr_api --disable-cq_ex` flags. There is an ongoing PR [387](https://github.com/linux-rdma/perftest/pull/387) to rdma-perftest that enables RDMA Write with IMM over the mrc-verbs shim library. Until, the PR is merged, please use [this](https://github.com/SreevatsaAnantharamu/perftest/tree/anantharamus/null-sge-wimm) fork of rdma-perftest.
+This will build perftest with `--disable-ibv_wr_api --disable-cq_ex` flags. There is an ongoing PR [387](https://github.com/linux-rdma/perftest/pull/387) to rdma-perftest that enables RDMA Write with IMM over the mrc-verbs shim library. Until the PR is merged, please use [this](https://github.com/SreevatsaAnantharamu/perftest/tree/anantharamus/null-sge-wimm) fork of rdma-perftest. See `tests/perftest/build-script.sh`.
 
 To run:
 ```
