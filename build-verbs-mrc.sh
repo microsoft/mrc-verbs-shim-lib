@@ -8,5 +8,4 @@ fi
 export MRC_H_PATH=${MRC_H_PATH}
 
 make clean
-make
-make tests
+make all

@@ -20,6 +20,11 @@ MRC_H_PATH=<Path to folder containing mrc.h> ./build-verbs-mrc.sh
 
 This will create the the shim layer's `libibverbs.so` library in `build/lib`. This library consists of overwrites for several of libibverbs symbols. For a list of symbols it overwrites, please run `objdump -T build/lib/libibverbs.so`.
 
+To install the shim library to a particular directory, run:
+```
+make install PREFIX=<installation dir>
+```
+
 To quickly check if the shim library works, run:
 ```bash
 MRC_LIB_DIR=<folder containing libmrc.so and dependencies> MRC_LIB_SO=<vendor name for libmrc.so> ./check_sanity.sh

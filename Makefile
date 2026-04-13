@@ -3,18 +3,21 @@ CFLAGS += -fPIC
 BUILDDIR ?= $(PWD)/build
 
 # Check MRC_H_PATH only if target is not format, lint, or clean
+ifneq ($(filter-out format lint clean install,$(MAKECMDGOALS)),)
 ifndef MRC_H_PATH
-ifneq ($(filter-out format lint clean,$(MAKECMDGOALS)),)
 $(error MRC_H_PATH is not defined. Please set it to the path of the header path of the MRC library.)
+else
+$(info MRC_H_PATH set to $(MRC_H_PATH))
 endif
 endif
+
+
 
 INCDIR := $(BUILDDIR)/include
 OBJDIR := $(BUILDDIR)/obj
 BINDIR := $(BUILDDIR)/bin
 LIBDIR := $(BUILDDIR)/lib
 
-$(info MRC_H_PATH set to $(MRC_H_PATH))
 
 CFLAGS += -I$(MRC_H_PATH) -g
 
@@ -32,7 +35,9 @@ DEBUG_OBJECTS := $(patsubst src/%.c, $(OBJDIR)/%_debug.o, $(SRCS))
 
 TARGETS := $(LIBDIR)/libibverbs.so $(LIBDIR)/debug/libibverbs_debug.so
 
-all: $(TARGETS)
+all: build tests
+
+build: $(TARGETS)
 
 $(LIBDIR)/libibverbs.so: $(OBJECTS)
 	@printf "Linking %s\n" $@
@@ -60,8 +65,12 @@ TESTS_OBJ=$(TESTS:.c=)
 
 tests: $(TESTS_OBJ)
 
-$(TESTS_OBJ): %: %.c
+$(TESTS_OBJ): %: %.c build
 	$(CC) $(CFLAGS) $< -o $@ -libverbs $(LDFLAGS)
+
+install: build
+	mkdir -p $(PREFIX)/lib
+	cp $(LIBDIR)/libibverbs.so $(PREFIX)/lib/
 
 # Formatting.
 FORMAT_SOURCES=$(SRCS) $(HEADERS) $(TESTS)
