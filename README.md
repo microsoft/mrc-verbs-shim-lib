@@ -1,6 +1,6 @@
 # Introduction
 
-The verbs-mrc-shim library is a lightweight library that enables existing libibverbs applications and AI communication libraries (such as NCCL/RCCL) to use the new Multipath Reliable Connection (MRC) transport with no code changes and no performance penalty. RDMA OPs supported by the shim are same as the ones supported by MRC, i.e.,  `RDMA_WRITE` and/or `RDMA_WRITE_WITH_IMM`. 
+The verbs-mrc-shim library is a lightweight library that enables existing libibverbs applications and AI communication libraries (such as NCCL/RCCL) to use the new Multipath Reliable Connection (MRC) transport with no code changes and no performance penalty. RDMA OPs supported by the shim are same as the ones supported by MRC -  `RDMA_WRITE` and/or `RDMA_WRITE_WITH_IMM`. 
 
 Specifically, the shim  provides overwrites for common libibverbs symbols used by communication libraries. The overwritten functions internally create and manage MRC-related resources and take care of translating libibverbs API calls to MRC API calls. The user experience will be as though they were calling the common libibverbs APIs.
 
@@ -22,7 +22,7 @@ This will create the the shim layer's `libibverbs.so` library in `build/lib`. Th
 
 To quickly check if the shim library works, run:
 ```bash
-MRC_LIB_DIR=<folder containing libmrc.so and dependencies> MRC_LIB_SO=<vendor libmrc.so> ./check_sanity.sh
+MRC_LIB_DIR=<folder containing libmrc.so and dependencies> MRC_LIB_SO=<vendor name for libmrc.so> ./check_sanity.sh
 ```
 You should see the list of all RDMA devices on the node. The `ibv_open_device_list` call is intercepted by the shim library. It will also list the version of the installed shim layer library at the top.
 
@@ -32,18 +32,19 @@ We have packaged two tests with the shim library: (i) verbs perftest and (ii) NC
 
 ## Verbs perftest
 
-The [rdma-perftest](https://github.com/linux-rdma/perftest) repo does not yet support MRC. To run it over MRC, clone and build verbs perftest as follows:
+To [rdma-perftest](https://github.com/linux-rdma/perftest) over the shim library, please clone and build verbs perftest as follows:
 ```
 cd tests/perftest
 ./build-script.sh
 ```
-This will build perftest with `--disable-ibv_wr_api --disable-cq_ex` flags.
+This will build perftest with `--disable-ibv_wr_api --disable-cq_ex` flags. There is an ongoing PR [387](https://github.com/linux-rdma/perftest/pull/387) to rdma-perftest that enables RDMA Write with IMM over the mrc-verbs shim library. Until, the PR is merged, please use [this](https://github.com/SreevatsaAnantharamu/perftest/tree/anantharamus/null-sge-wimm) fork of rdma-perftest.
 
-To run perftest over MRC via our shim, execute:
+To run:
 ```
 cd tests/perftest
 MRC_LIB_DIR=<Directory containing MRC shared lib> MRC_LIB_SO=<libmrc.so> ./trigger-script.sh <ip-client> <ip-server> # Starts both server and client.
 ```
+The RC queue pairs are internally converted to MRC queue pairs are the verbs APIs are internally converted to MRC APIs.
 
 ## NCCL
 
@@ -61,34 +62,32 @@ cd tests/nccl/nccl-tests
 ./run-script.sh <# of nodes> <collective> # For e.g., ./run-script.sh 4 sendrecv
 ```
 
-# How does it work?
+# General instructions to use mrc-verbs-shim-lib
 
 ## Requirements
 
 Your CCL/app should:
 
+- Only use `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` RDMA ops. `RDMA_READ` and `RDMA_SEND` is not supported by MRC.
 - Not use `_ex` APIs. For e.g., `ibv_crate_cq_ex` and `ibv_create_qp_ex`.
-- Not use WR APIs and instead use `ibv_post_send` and `ibv_post_recv`.
-- Only use `RDMA_WRITE` or `RDMA_WRITE_WITH_IMM` RDMA ops. `RDMA_READ` and `RDMA_SEND` is not supported.
+- Not use WR APIs to post send and recv work requests and instead use `ibv_post_send` and `ibv_post_recv`.
 
 ## Environment variables
 
-The variables needed to be exported are:
+The following variables need to be exported:
 ```bash
 export VMRC_LIBMRC_SO=<absolute path to vendor libmrc.so>
-export VMRC_LIBIBVERBS_SO=<absolute path to vendor libibverbs.so.1>
-MRC_LIB_PATH=<path to folders containing .so files to resolve vendor libmrc.so symbols (colon seprated)>
+export VMRC_LIBIBVERBS_SO=<absolute path to rdma-core libibverbs.so.1>
+MRC_LIB_PATH=<path to folders containing .so files to resolve vendor libmrc.so symbols (colon separated)>
 export LD_LIBRARY_PATH=$MRC_LIB_PATH:$LD_LIBRARY_PATH
 ```
 
 ## Execution
 
-
-To use MRC over shim library with your application,
+To use MRC over shim library with your application:
 - Export the above variables
-
-- If your CCL/app compiles against rdma-core (for e.g., perftest) and satisfies the above requirements, then `LD_PRELOAD` the shim library and run your application as:
+- If your app compiles against rdma-core (for e.g., perftest) and satisfies the above requirements, then `LD_PRELOAD` the shim library and run your application as:
 ```
 LD_PRELOAD=<Absolute path of shim library's libibverbs.so> <your app/ccl>
 ```
-- If your CCL/app loads `libibverbs.so` at runtime (for e.g., NCCL), then `dlopen` the shim library's `libibverbs.so` instead of the usual `libibverbs.so` library.
+- If your CCL/app loads `libibverbs.so` and its symbols at runtime (for e.g., NCCL), then `dlopen` the shim library instead of the usual `libibverbs.so` library and load the verbs symbols from it.
