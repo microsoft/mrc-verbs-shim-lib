@@ -1,0 +1,24 @@
+IBVERBS_1.1 {
+    global:
+        ibv_*;
+    local:
+        ovwrt_*;
+};
+IBVERBS_1.8 {
+    global:
+        ibv_*;
+    local:
+        ovwrt_*;
+};
+IBVERBS_1.10 {
+    global:
+        ibv_*;
+    local:
+        ovwrt_*;
+};
+IBVERBS_1.12 {
+    global:
+        ibv_*;
+    local:
+        ovwrt_*;
+};
