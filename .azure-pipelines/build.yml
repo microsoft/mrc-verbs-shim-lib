@@ -101,5 +101,11 @@ jobs:
         popd
         echo "Finished building shim"
 
-        echo "Cleaning up"
+        echo "##[Section]Running sanity check"
+        pushd $(remote_dir)/tests
+        ./check_sanity
+        popd
+        echo "Finished running sanity check"
+
+        echo "##[section]Cleaning up"
         rm -r $(remote_dir)
