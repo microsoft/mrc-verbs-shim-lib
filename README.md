@@ -58,7 +58,7 @@ To clone and build NCCL and NCCL-tests, run:
 cd tests/nccl
 ./build-script.sh
 ```
-This will build [v2.30.3-1](https://github.com/NVIDIA/nccl/tree/v2.30.3-1) branch of NCCL. NCCL >= v2.30.3.1 supports:
+This will build [v2.30.3-1](https://github.com/NVIDIA/nccl/tree/v2.30.3-1) branch of NCCL. NCCL >= v2.30.3-1 supports:
 - the user to provide an absolute path of `libibverbs.so` to use in `dlopen` via `NCCL_IBVERBS_LIB` environment variable and 
 - GDR pin buffer v2 APIs needed on GB200 systems. The absolute path of the shim library should be provided with this env var.
 
