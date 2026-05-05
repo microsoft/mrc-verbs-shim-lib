@@ -5,4 +5,4 @@
 #define VMRC_VERSION_MINOR 1
 #define VMRC_VERSION_PATCH 1
 
-#endif // VMRC_VERSION_H
+#endif  // VMRC_VERSION_H

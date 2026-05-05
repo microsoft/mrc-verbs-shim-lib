@@ -172,9 +172,9 @@ VMRC_DEF_VIS int ovwrt_ibv_close_device(struct ibv_context* verbs_context) {
                                 verbs_context);
 
   /* Destroy all the QP hints. */
-  struct vmrc_ht_linked_list *attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
+  struct vmrc_ht_linked_list* attr = vmrc_ht_attr_get(addr_of_value, VMRC_HT_ATTR_QP_HINT_IDX);
   while (attr != NULL) {
-    struct mrc_qp_hint *qp_hint = (struct mrc_qp_hint*)attr->ptr_and_next[VMRC_HT_LL_PTR];
+    struct mrc_qp_hint* qp_hint = (struct mrc_qp_hint*)attr->ptr_and_next[VMRC_HT_LL_PTR];
     mrc_errno = symbols->mrc_destroy_qp_hint_internal(qp_hint);
     VMRC_CHECK_PRINT_EXIT(mrc_errno == 0, 1, "Error in mrc_destroy_qp_hint");
     attr = (struct vmrc_ht_linked_list*)attr->ptr_and_next[VMRC_HT_LL_NEXT];
@@ -415,7 +415,7 @@ VMRC_DEF_VIS struct ibv_qp* ovwrt_ibv_create_qp(struct ibv_pd* pd, struct ibv_qp
 
 __asm__(".symver ovwrt_ibv_query_qp, ibv_query_qp@@IBVERBS_1.1");
 VMRC_DEF_VIS int ovwrt_ibv_query_qp(struct ibv_qp* verbs_qp, struct ibv_qp_attr* vattr, int vattr_mask,
-                                            struct ibv_qp_init_attr* vinit_attr) {
+                                    struct ibv_qp_init_attr* vinit_attr) {
   struct vmrc_symbols_t* symbols;
   int mrc_errno;
   struct mrc_qp_init_attr mrc_init_attr;
