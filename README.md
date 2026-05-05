@@ -58,13 +58,17 @@ To clone and build NCCL and NCCL-tests, run:
 cd tests/nccl
 ./build-script.sh
 ```
-This will build [v2.30.3-1](https://github.com/NVIDIA/nccl/tree/v2.30.3-1) branch of NCCL. This version of NCCL supports the user to provide an absolute path of `libibverbs.so` to use in `dlopen` via `NCCL_IBVERBS_LIB` environment variable and supports GDR pin buffer v2 APIs needed on GB200 systems. The absolute path of the shim library should be provided with this env var. Please take a look at `run-script.sh` in `tests/nccl`.
+This will build [v2.30.3-1](https://github.com/NVIDIA/nccl/tree/v2.30.3-1) branch of NCCL. NCCL >= v2.30.3.1 supports:
+- the user to provide an absolute path of `libibverbs.so` to use in `dlopen` via `NCCL_IBVERBS_LIB` environment variable and 
+- GDR pin buffer v2 APIs needed on GB200 systems. The absolute path of the shim library should be provided with this env var.
+
+On GB200, GDRCopy >= 2.5.2 is needed to flush the NIC to GPU PCIe transactions via GDRCopy write over PCIe instead of using a loopback RDMA Read operation over RC queue pair.
 
 To run NCCL with shim using just the MRC backend,
 ```
 cd tests/nccl
 # Prepare a file called `hostfile` with the ips of the nodes
-./run-script.sh <# of nodes> <collective> # For e.g., ./run-script.sh 4 sendrecv
+MRC_LIB_DIR=<Directory containing MRC shared lib> MRC_LIB_SO=<libmrc.so> ./run-script.sh <# of nodes> <collective> # For e.g., ./run-script.sh 2 sendrecv 
 ```
 For additional information, please run: `./run-script.sh -h`.
 
