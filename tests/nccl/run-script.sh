@@ -14,11 +14,14 @@ print_usage() {
     echo "Environment variables:"
     echo "  MRC_LIB_DIR: Directory where the MRC library is located. (required)"
     echo "  MRC_LIB_SO: Name of the MRC library file (default: libmrc.so)."
+    echo "  NCCL_LIB_DIR: Directory where the NCCL library is located (default: ./nccl/build/lib)."
+    echo "  NCCL_IBVERBS_LIB: Path to the libibverbs library to use for NCCL (default: ../build/lib/libibverbs.so (.. is relative to script))."
     echo "  PPN: Processes per node (default: 4)."
     echo "  INIC_LIST: Comma-separated list of NIC indices in the order to use from the binding file (default: 1,0,3,2)."
     echo "  BINDING_FILE: Path to the NIC-GPU-CPU-NUMA binding file (default: ../default-nic-gpu-cpu-numa-binding.txt (.. is relative to script))."
     echo "  MPI_NETDEV: Network device to use for MPI (default: enP22p1s0f1)."
     echo "  GID_INDEX: GID index to use for the test (default: 3)."
+    echo "  NCCL_TESTS_DIR: Directory where nccl-tests is located (default: ./nccl-tests)."
     echo "  OUTER_ITER: Number of outer iterations for the test (default: 1)."
     echo "  INNER_ITER: Number of inner iterations for the test (default: 50)."
     echo "  WARMUP_ITER: Number of warmup iterations for the test (default: 50)."
@@ -48,7 +51,10 @@ fi
 MRC_LIB_DIR=${MRC_LIB_DIR:?"Error: MRC_LIB_DIR is not set"}
 MRC_LIB_DIR=$(realpath $MRC_LIB_DIR)
 MRC_LIB_SO=${MRC_LIB_SO:-"libmrc.so"}
+NCCL_LIB_DIR=${NCCL_LIB_DIR:-$SCRIPT_DIR/nccl/build/lib}
+NCCL_IBVERBS_LIB=${NCCL_IBVERBS_LIB:-$(realpath $SCRIPT_DIR/../../build/lib/libibverbs.so)}
 NUM_NODES=${1:?"Error: NUM_NODES argument is required"}
+NCCL_TESTS_DIR=${NCCL_TESTS_DIR:-$SCRIPT_DIR/nccl-tests}
 BENCH=${2:?"Error: BENCH argument is required"}
 PPN=${PPN:-4}
 INIC_LIST=${INIC_LIST:-"1,0,3,2"}
@@ -91,17 +97,16 @@ PHYS_CPU_BIND_RANGE=$(IFS=,; echo "${CPU_RANGE_ORDER[*]}")
 MEM_BIND=$(IFS=,; echo "${NUMA_ORDER[*]}")
 
 LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
-LD_LIBRARY_PATH=$MRC_LIB_DIR:$(realpath $SCRIPT_DIR/nccl/build/lib):$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$MRC_LIB_DIR:$(realpath $NCCL_LIB_DIR):$LD_LIBRARY_PATH
 
 arch=$(uname -m)
 VMRC_LIBMRC_SO=$MRC_LIB_DIR/$MRC_LIB_SO
 VMRC_LIBIBVERBS_SO=/lib/${arch}-linux-gnu/libibverbs.so.1
 check_if_file_exists $VMRC_LIBMRC_SO
 check_if_file_exists $VMRC_LIBIBVERBS_SO
-NCCL_IBVERBS_LIB=$(realpath $SCRIPT_DIR/../../build/lib/libibverbs.so)
 check_if_file_exists $NCCL_IBVERBS_LIB
 
-COLL=$(realpath $SCRIPT_DIR/nccl-tests/build/${BENCH}_perf)
+COLL=$(realpath $NCCL_TESTS_DIR/build/${BENCH}_perf)
 
 # Set COLL_ARGS based on LONG_RUN mode
 if [ "$LONG_RUN" -eq 1 ]; then
