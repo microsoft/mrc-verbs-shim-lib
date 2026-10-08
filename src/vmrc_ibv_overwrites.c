@@ -83,11 +83,10 @@ int vmrc_ibv_overwrite_post_recv(struct ibv_qp* qp, struct ibv_recv_wr* wr, stru
 /*
  * Overwrite of the create_qp_ex op (reached via ibv_create_qp_ex()).
  *
- * Builds an MRC-backed QP and wraps it in a dummy ibv_qp we fully control. Unlike
- * create_cq_ex, this op is reached both from applications (when they call
- * ibv_create_qp_ex with extended attributes) AND would be reached from libmrc if
- * it called ibv_create_qp_ex internally. However, libmrc's internal provider-QP
- * creation uses the classic ibv_create_qp() path (verified in mrc_ibv.c:76-77,
+ * Builds an MRC-backed QP and wraps it in a dummy ibv_qp we fully control. This op
+ * is reached from applications calling ibv_create_qp_ex, and would also be reached
+ * from libmrc if it called ibv_create_qp_ex internally. However, libmrc's internal
+ * provider-QP creation uses the classic ibv_create_qp() path (verified in mrc_ibv.c:76-77,
  * which dlsyms "ibv_create_qp", not "ibv_create_qp_ex"), so there is no recursion
  * and no original op needs to be saved.
  *
@@ -109,12 +108,18 @@ struct ibv_qp* vmrc_ibv_overwrite_create_qp_ex(struct ibv_context* context,
   VMRC_DEBUG_PRINT("In ibv_create_qp_ex");
 
   /* Validate QP type. */
-  VMRC_CHECK_PRINT_EXIT(qp_init_attr_ex->qp_type == IBV_QPT_RC, 1,
-                        "create_qp_ex: Only RC QP types are supported");
+  VMRC_CHECK_PRINT_EXIT(qp_init_attr_ex->qp_type == IBV_QPT_RC, 1, "create_qp_ex: Only RC QP types are supported");
 
-  /* Extract PD from the extended attributes. */
-  VMRC_CHECK_PRINT_EXIT(qp_init_attr_ex->comp_mask & IBV_QP_INIT_ATTR_PD, 1,
-                        "create_qp_ex: comp_mask must include IBV_QP_INIT_ATTR_PD");
+  /* ibv_create_qp_ex() routes a PD-only comp_mask to ibv_create_qp(), so this op is
+   * normally reached only when the app asked for more than a PD. MRC supports none of
+   * the extensions (xrcd, create_flags, TSO, RSS, send_ops_flags). send_ops_flags in
+   * particular requests the ibv_wr_* API: ibv_qp_to_qp_ex() then reads the QP as a
+   * struct verbs_qp, which the dummy ibv_qp built below is not. Reject rather than
+   * silently drop what the app asked for. */
+  VMRC_CHECK_PRINT_EXIT(qp_init_attr_ex->comp_mask == IBV_QP_INIT_ATTR_PD, 1,
+                        "create_qp_ex: only IBV_QP_INIT_ATTR_PD is supported in comp_mask "
+                        "(no xrcd/create_flags/max_tso_header/rwq_ind_tbl/rx_hash/send_ops_flags; "
+                        "perftest: use --use_old_post_send)");
   pd = qp_init_attr_ex->pd;
   VMRC_CHECK_PRINT_EXIT(pd, 1, "create_qp_ex: NULL pd in qp_init_attr_ex");
 
@@ -571,6 +576,16 @@ struct ibv_cq_ex* vmrc_ibv_overwrite_create_cq_ex(struct ibv_context* verbs_cont
   VMRC_CHECK_PRINT_EXIT((cq_attr->wc_flags & MRC_UNSUPPORTED_WC_FLAGS) == 0, 1,
                         "create_cq_ex: unsupported wc_flags requested (MRC does not populate "
                         "timestamp/slid/sl/dlid_path_bits/cvlan/flow_tag/tm_info)");
+
+  /* SINGLE_THREADED only promises the app serializes CQ access, so ignoring it is
+   * safe. IGNORE_OVERRUN and a parent domain (thread domain, custom allocators)
+   * change provider CQ behavior that MRC cannot honor. */
+  VMRC_CHECK_PRINT_EXIT((cq_attr->comp_mask & ~IBV_CQ_INIT_ATTR_MASK_FLAGS) == 0, 1,
+                        "create_cq_ex: only IBV_CQ_INIT_ATTR_MASK_FLAGS is supported in comp_mask "
+                        "(no parent_domain; perftest: do not use --no_lock)");
+  VMRC_CHECK_PRINT_EXIT(!(cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS) ||
+                            (cq_attr->flags & ~IBV_CREATE_CQ_ATTR_SINGLE_THREADED) == 0,
+                        1, "create_cq_ex: only IBV_CREATE_CQ_ATTR_SINGLE_THREADED is supported in flags");
 
   hashtable = vmrc_ht_get();
   VMRC_CHECK_PRINT_EXIT(hashtable, 1, "create_cq_ex: could not get context hashtable");
