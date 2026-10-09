@@ -8,6 +8,7 @@
 #define _VMRC_HT_H_
 
 #define VMRC_HT_ATTR_QP_HINT_IDX 0
+#define VMRC_HT_ATTR_ORIG_CREATE_QP_EX_IDX 1
 
 #define VMRC_HT_LL_PTR 0
 #define VMRC_HT_LL_NEXT 1
@@ -15,7 +16,7 @@
 /* Hash table size should be 2^bits. */
 #define VMRC_HT_BITS 7
 #define VMRC_HT_SIZE 128
-#define VMRC_HT_ATTR_SIZE 1
+#define VMRC_HT_ATTR_SIZE 2
 
 struct vmrc_ht_linked_list {
   void *ptr_and_next[2];

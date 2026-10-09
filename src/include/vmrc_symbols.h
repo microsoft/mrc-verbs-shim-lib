@@ -8,6 +8,15 @@
 
 #include "mrc.h"
 
+/* The MRC device-attributes struct was renamed mrc_attr -> mrc_device_attr in
+ * newer libmrc (matching the OCP MRC spec). Builds against such libmrc define
+ * HAVE_MRC_DEVICE_ATTR (set by the Makefile when IONIC=1). For older libmrc
+ * that still exposes struct mrc_attr, remap the new name onto it so the shim
+ * source can uniformly use mrc_device_attr. */
+#ifndef HAVE_MRC_DEVICE_ATTR
+#define mrc_device_attr mrc_attr
+#endif
+
 /* This will have the needed symbols from both libmrc.so and libibverbs.so. */
 struct vmrc_symbols_t {
   /*
@@ -39,7 +48,7 @@ struct vmrc_symbols_t {
    * MRC symbols.
    */
 
-  int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_attr *attr, int *supported);
+  int (*mrc_query_device_internal)(struct ibv_context *context, struct mrc_device_attr *attr, int *supported);
   struct mrc_context *(*mrc_create_context_internal)(struct ibv_context *vcontext,
                                                      struct mrc_context_attr *context_attr);
   int (*mrc_destroy_context_internal)(struct mrc_context *mrc_ctx);

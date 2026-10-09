@@ -17,3 +17,6 @@ tests/*
 *.vscode
 *.swp
 
+
+# Build output directory.
+build/

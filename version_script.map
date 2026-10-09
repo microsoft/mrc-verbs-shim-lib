@@ -22,3 +22,15 @@ IBVERBS_1.12 {
     local:
         ovwrt_*;
 };
+#ifdef HAVE_IONIC_DV
+IONIC_1.0 {
+    global:
+        ionic_dv_qp_set_gda;
+        ionic_dv_qp_set_puec_plane_route;
+        ionic_dv_pd_set_udma_mask;
+};
+IONIC_1.2 {
+    global:
+        ionic_dv_qp_set_multiplane_conn_info;
+};
+#endif

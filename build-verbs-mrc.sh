@@ -7,5 +7,6 @@ fi
 
 export MRC_H_PATH=${MRC_H_PATH}
 
+# Pass IONIC=1 (env or arg) through to enable the ionic_dv_* interceptors.
 make clean
-make all
+make all IONIC=${IONIC:-0}
