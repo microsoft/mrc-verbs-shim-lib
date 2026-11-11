@@ -33,6 +33,7 @@ struct vmrc_symbols_t {
   int (*ibv_query_device_internal)(struct ibv_context *context, struct ibv_device_attr *device_attr);
   int (*ibv_query_port_internal)(struct ibv_context *context, uint8_t port_num, struct ibv_port_attr *port_attr);
   int (*ibv_query_gid_internal)(struct ibv_context *context, uint8_t port_num, int index, union ibv_gid *gid);
+  int (*ibv_query_pkey_internal)(struct ibv_context *context, uint8_t port_num, int index, uint16_t *pkey);
   struct ibv_pd *(*ibv_alloc_pd_internal)(struct ibv_context *context);
   int (*ibv_dealloc_pd_internal)(struct ibv_pd *pd);
   struct ibv_mr *(*ibv_reg_mr_internal)(struct ibv_pd *pd, void *addr, size_t length, int access);
