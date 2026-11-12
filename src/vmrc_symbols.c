@@ -90,6 +90,7 @@ struct vmrc_symbols_t* vmrc_symbols_get() {
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_device", cache->ibv_query_device_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_port", cache->ibv_query_port_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_gid", cache->ibv_query_gid_internal);
+  LOAD_IBVERBS_SYM(ibv_handle, "ibv_query_pkey", cache->ibv_query_pkey_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_alloc_pd", cache->ibv_alloc_pd_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_dealloc_pd", cache->ibv_dealloc_pd_internal);
   LOAD_IBVERBS_SYM(ibv_handle, "ibv_reg_mr", cache->ibv_reg_mr_internal);

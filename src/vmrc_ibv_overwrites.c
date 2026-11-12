@@ -49,6 +49,9 @@ VMRC_WRAP_SYMVER(ibv_query_port, "IBVERBS_1.1", int,
 VMRC_WRAP_SYMVER(ibv_query_gid, "IBVERBS_1.1", int,
                  (struct ibv_context * context, uint8_t port_num, int index, union ibv_gid* gid),
                  (context, port_num, index, gid))
+VMRC_WRAP_SYMVER(ibv_query_pkey, "IBVERBS_1.1", int,
+                 (struct ibv_context * context, uint8_t port_num, int index, uint16_t* pkey),
+                 (context, port_num, index, pkey))
 VMRC_WRAP_SYMVER(ibv_alloc_pd, "IBVERBS_1.1", struct ibv_pd*, (struct ibv_context * context), (context))
 VMRC_WRAP_SYMVER(ibv_dealloc_pd, "IBVERBS_1.1", int, (struct ibv_pd * pd), (pd))
 #undef ibv_reg_mr  // Undefine the macro and redefine after instantiating pass through for ibv_reg_mr.
