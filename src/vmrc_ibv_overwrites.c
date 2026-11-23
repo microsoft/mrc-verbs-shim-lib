@@ -342,6 +342,25 @@ VMRC_DEF_VIS int ovwrt_ionic_dv_pd_set_udma_mask(struct ibv_pd* pd, uint8_t udma
 
   return g_real_ionic_pd_set_udma_mask(pd, udma_mask);
 }
+
+/*
+ * Intercept mrc_multiplane_override_dgid.
+ *
+ * libionic exports a weak default of this hook that returns true, which tells
+ * applications (perftest, ANP) to rewrite the AH dgid of a multiplane QP to
+ * their own sgid (loopback) before ibv_modify_qp(RTR). libmrc's mrc_modify_qp()
+ * now performs that override itself, and it records the dgid it is given as the
+ * real peer address. If the application has already rewritten it, libmrc sees
+ * its own GID as the destination. Return false so the application keeps the
+ * real peer dgid and leaves the multiplane override to libmrc.
+ */
+__asm__(
+    ".symver ovwrt_mrc_multiplane_override_dgid, "
+    "mrc_multiplane_override_dgid@@IONIC_1.4");
+VMRC_DEF_VIS _Bool ovwrt_mrc_multiplane_override_dgid(void) {
+  VMRC_DEBUG_PRINT("In mrc_multiplane_override_dgid");
+  return 0;
+}
 #endif /* HAVE_IONIC_DV */
 
 /*

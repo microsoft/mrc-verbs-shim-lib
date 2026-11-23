@@ -33,4 +33,8 @@ IONIC_1.2 {
     global:
         ionic_dv_qp_set_multiplane_conn_info;
 };
+IONIC_1.4 {
+    global:
+        mrc_multiplane_override_dgid;
+};
 #endif
